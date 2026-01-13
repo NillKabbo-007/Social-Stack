@@ -74,7 +74,8 @@ export enum AppRoute {
   PLATFORM_TWITTER = 'platform_twitter',
   PLATFORM_LINKEDIN = 'platform_linkedin',
   PLATFORM_YOUTUBE = 'platform_youtube',
-  PLATFORM_PINTEREST = 'platform_pinterest'
+  PLATFORM_PINTEREST = 'platform_pinterest',
+  NEWS = 'news'
 }
 
 export interface PricingPlan {

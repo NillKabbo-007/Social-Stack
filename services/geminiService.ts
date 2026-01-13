@@ -38,7 +38,6 @@ const safeParseJSON = (text: string | undefined, fallback: any = []) => {
         return JSON.parse(cleaned);
     } catch (e) {
         // Attempt to repair truncated JSON by balancing braces and brackets
-        // This handles cases where maxOutputTokens is reached mid-string.
         try {
             let attempt = cleaned;
             const openBraces = (attempt.match(/\{/g) || []).length;
@@ -51,14 +50,13 @@ const safeParseJSON = (text: string | undefined, fallback: any = []) => {
             
             return JSON.parse(attempt);
         } catch (e2) {
-            // Log as warning rather than error to avoid noise when fallbacks are intentional
             console.warn("AI returned malformed or truncated JSON. Using fallback storage.", { original: text, error: e2 });
             return fallback;
         }
     }
 };
 
-// --- Mock Data Generators for Fallbacks ---
+// --- Mock Data Generators ---
 const getMockXFeed = () => [
     { author: "Elon Musk", handle: "@elonmusk", verified: true, content: "AI is moving faster than anyone realizes. Grok 2.0 coming soon.", time: "2h ago", metrics: { likes: "142k", retweets: "12k", replies: "8k", views: "12M" } },
     { author: "TechCrunch", handle: "@TechCrunch", verified: true, content: "BREAKING: New social media regulations proposed in EU affecting algorithm transparency.", time: "4h ago", metrics: { likes: "1.2k", retweets: "450", replies: "120", views: "500k" } },
@@ -89,7 +87,7 @@ export const generateViralSuggestions = async (niche: string, tone: string, plat
       `,
       config: {
         tools: [{ googleSearch: {} }],
-        maxOutputTokens: 4096, // Increased to prevent truncation
+        maxOutputTokens: 4096,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
@@ -287,12 +285,31 @@ export const getLinkedInFeed = async () => {
     }
 };
 
+export const getYoutubeAnalytics = async () => {
+    // Simulated YouTube Data
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                subscribers: 24500,
+                views: 1250000,
+                watchTime: 42000,
+                revenue: 2850,
+                recentVideos: [
+                    { id: 'v1', title: 'Ultimate Guide to Multi-Channel Marketing 2026', views: '45.2K', likes: '3.1K', date: '2 days ago', thumbnail: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=400' },
+                    { id: 'v2', title: 'Why Social Stack is the #1 tool for Agencies', views: '128.4K', likes: '12K', date: '1 week ago', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400' },
+                    { id: 'v3', title: 'AI Automation: Scaling your brand past $1M', views: '12.1K', likes: '890', date: '2 weeks ago', thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=400' }
+                ]
+            });
+        }, 1200);
+    });
+};
+
 export const generateSocialPost = async (prompt: string, tone: string, keywords: string, platforms: string[]) => {
     try {
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: `Create social media content for: "${prompt}". Tone: ${tone}. Keywords: ${keywords}. Platforms: ${platforms.join(', ')}. Return structured JSON.`,
+            contents: `Create social media content for: "${prompt}". Tone: ${tone}. Keywords: ${keywords}. Platforms: ${platforms.join(', ')}. Return structured JSON. For YouTube, provide a title, description, and suggested tags.`,
             config: {
                 maxOutputTokens: 4096,
                 responseMimeType: "application/json",
@@ -306,7 +323,14 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
                                 type: Type.OBJECT,
                                 properties: {
                                     platformId: { type: Type.STRING },
-                                    content: { type: Type.STRING }
+                                    content: { type: Type.STRING },
+                                    metadata: { 
+                                        type: Type.OBJECT,
+                                        properties: {
+                                            title: { type: Type.STRING },
+                                            tags: { type: Type.STRING }
+                                        }
+                                    }
                                 }
                             }
                         }
