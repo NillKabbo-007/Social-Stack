@@ -11,29 +11,87 @@ interface BulkPublisherProps {
 }
 
 const PlatformPreview: React.FC<{ post: any; media: MediaItem | null }> = ({ post, media }) => {
-    if (post.platformId === 'twitter' || post.platformId === 'x') {
+    const isX = post.platformId === 'twitter' || post.platformId === 'x';
+    const charCount = post.content.length;
+    const xLimit = 280;
+    const isOverLimit = isX && charCount > xLimit;
+
+    if (isX) {
         return (
-            <div className="bg-black text-white p-5 rounded-2xl border border-slate-800 font-sans shadow-2xl relative">
-                <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-700 flex-shrink-0 overflow-hidden">
-                        <img src="https://ui-avatars.com/api/?name=Brand&background=random" className="w-full h-full object-cover" alt="Avatar" />
+            <div className={`bg-black text-white p-5 rounded-2xl border transition-all shadow-2xl relative font-sans ${isOverLimit ? 'border-rose-500 ring-1 ring-rose-500/50' : 'border-slate-800'}`}>
+                {isOverLimit && (
+                    <div className="absolute -top-3 right-4 px-2 py-1 bg-rose-600 text-[9px] font-black uppercase rounded-md shadow-lg animate-bounce">
+                        Limit Exceeded: {charCount}/{xLimit}
+                    </div>
+                )}
+                <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-700 flex-shrink-0 overflow-hidden border border-white/10">
+                        <img src="https://ui-avatars.com/api/?name=Social+Stack&background=6366f1&color=fff&bold=true" className="w-full h-full object-cover" alt="Avatar" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 text-sm font-bold">Brand Node<span className="text-slate-500 font-normal">@node · 1m</span></div>
-                        <div className="mt-1 text-sm whitespace-pre-wrap leading-normal font-medium">{post.content}</div>
-                        {media && <div className="mt-3 rounded-2xl overflow-hidden border border-slate-800 shadow-xl"><img src={media.url} className="w-full h-auto object-cover" /></div>}
+                        <div className="flex items-center gap-1 text-[13px]">
+                            <span className="font-bold truncate text-white">Social Stack</span>
+                            <i className="fa-solid fa-circle-check text-[#1d9bf0] text-[10px]"></i>
+                            <span className="text-slate-500 font-normal truncate">@socialstack · 1m</span>
+                            <div className="ml-auto text-slate-500 hover:text-[#1d9bf0] cursor-pointer">
+                                <i className="fa-solid fa-ellipsis"></i>
+                            </div>
+                        </div>
+                        <div className="mt-1 text-[14px] whitespace-pre-wrap leading-tight text-slate-100 font-normal tracking-tight">
+                            {post.content}
+                        </div>
+                        
+                        {media && (
+                            <div className="mt-3 rounded-2xl overflow-hidden border border-slate-800 shadow-xl aspect-video bg-slate-900 flex items-center justify-center">
+                                <img src={media.url} className="w-full h-full object-cover" alt="X Media Content" />
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex items-center justify-between max-w-[320px] text-slate-500">
+                            <div className="flex items-center gap-1.5 hover:text-[#1d9bf0] transition-colors cursor-pointer group">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#1d9bf0]/10">
+                                    <i className="fa-regular fa-comment text-sm"></i>
+                                </div>
+                                <span className="text-[11px]">0</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 hover:text-[#00ba7c] transition-colors cursor-pointer group">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#00ba7c]/10">
+                                    <i className="fa-solid fa-retweet text-sm"></i>
+                                </div>
+                                <span className="text-[11px]">0</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 hover:text-[#f91880] transition-colors cursor-pointer group">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#f91880]/10">
+                                    <i className="fa-regular fa-heart text-sm"></i>
+                                </div>
+                                <span className="text-[11px]">0</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 hover:text-[#1d9bf0] transition-colors cursor-pointer group">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#1d9bf0]/10">
+                                    <i className="fa-solid fa-chart-simple text-sm"></i>
+                                </div>
+                                <span className="text-[11px]">0</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 hover:text-[#1d9bf0] transition-colors cursor-pointer group">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#1d9bf0]/10">
+                                    <i className="fa-regular fa-bookmark text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         );
     }
+
     return (
         <div className="glass-panel p-5 rounded-2xl border border-white/5 shadow-xl w-full">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center justify-between mb-4">
                 <div className="px-3 py-1 bg-indigo-600/20 text-indigo-400 text-[8px] font-tech uppercase rounded-lg border border-indigo-500/20">{post.platformId} Channel</div>
+                <span className="text-[10px] font-tech text-slate-500">{charCount} chars</span>
             </div>
             <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap mb-4 font-medium">{post.content}</div>
-            {media && <div className="rounded-xl overflow-hidden shadow-2xl border border-white/10"><img src={media.url} className="w-full h-auto" /></div>}
+            {media && <div className="rounded-xl overflow-hidden shadow-2xl border border-white/10 aspect-video bg-slate-900"><img src={media.url} className="w-full h-full object-cover" /></div>}
         </div>
     );
 };
@@ -104,7 +162,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-4 space-y-8">
             <div className="glass-panel p-8 rounded-[2.5rem] space-y-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-3xl rounded-full"></div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/5 blur-3xl rounded-full"></div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
                     <h3 className="text-[10px] font-tech text-slate-500 uppercase tracking-[0.2em]">Asset Laboratory</h3>
                     <div className="flex gap-4">
@@ -222,13 +280,20 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
 
             {generatedContent && (
                 <div className="animate-in slide-in-from-bottom-12 duration-700 space-y-8">
+                    <div className="flex items-center gap-3 px-2">
+                        <i className="fa-solid fa-eye text-indigo-400"></i>
+                        <h3 className="text-lg font-display font-black text-white uppercase tracking-tighter">Transmission Previews</h3>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {generatedContent.platformPosts?.map((post: any, i: number) => (
                             <PlatformPreview key={i} post={post} media={selectedMedia} />
                         ))}
                     </div>
                     <div className="flex justify-center pt-8">
-                        <button className="px-16 py-5 bg-white text-black rounded-full font-display font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95">
+                        <button 
+                            disabled={generatedContent.platformPosts?.some((p: any) => p.platformId === 'twitter' && p.content.length > 280)}
+                            className="px-16 py-5 bg-white text-black rounded-full font-display font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95 disabled:opacity-50 disabled:grayscale"
+                        >
                             Authorize Global Synchronization
                         </button>
                     </div>

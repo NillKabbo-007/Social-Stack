@@ -1,5 +1,5 @@
 
-import { PlatformData, ROIEntry, ComparisonMetric } from './types';
+import { PlatformData, ROIEntry, ComparisonMetric, AppRoute } from './types';
 
 export const GLOBAL_CURRENCIES: Record<string, { symbol: string; rate: number; name: string }> = {
   'USD': { symbol: '$', rate: 1, name: 'US Dollar' },
@@ -25,140 +25,120 @@ export const GLOBAL_CURRENCIES: Record<string, { symbol: string; rate: number; n
 };
 
 export const GLOBAL_LANGUAGES = [
-  // North America
   { code: 'en-US', name: 'English (US)', flag: '🇺🇸', region: 'North America' },
-  { code: 'fr-CA', name: 'Français (Canada)', flag: '🇨🇦', region: 'North America' },
-  { code: 'es-MX', name: 'Español (Mexico)', flag: '🇲🇽', region: 'North America' },
-  
-  // Europe
-  { code: 'en-GB', name: 'English (UK)', flag: '🇬🇧', region: 'Europe' },
-  { code: 'fr-FR', name: 'Français (France)', flag: '🇫🇷', region: 'Europe' },
-  { code: 'de-DE', name: 'Deutsch (Germany)', flag: '🇩🇪', region: 'Europe' },
-  { code: 'it-IT', name: 'Italiano (Italy)', flag: '🇮🇹', region: 'Europe' },
-  { code: 'es-ES', name: 'Español (Spain)', flag: '🇪🇸', region: 'Europe' },
-  { code: 'pt-PT', name: 'Português (Portugal)', flag: '🇵🇹', region: 'Europe' },
-  { code: 'nl-NL', name: 'Nederlands (Netherlands)', flag: '🇳🇱', region: 'Europe' },
-  { code: 'ru-RU', name: 'Русский (Russia)', flag: '🇷🇺', region: 'Europe' },
-  { code: 'sv-SE', name: 'Svenska (Sweden)', flag: '🇸🇪', region: 'Europe' },
-  { code: 'pl-PL', name: 'Polski (Poland)', flag: '🇵🇱', region: 'Europe' },
-  { code: 'tr-TR', name: 'Türkçe (Turkey)', flag: '🇹🇷', region: 'Europe' },
-  { code: 'uk-UA', name: 'Українська (Ukraine)', flag: '🇺🇦', region: 'Europe' },
-
-  // Asia
-  { code: 'zh-CN', name: '中文 (China)', flag: '🇨🇳', region: 'Asia' },
-  { code: 'hi-IN', name: 'हिन्दी (India)', flag: '🇮🇳', region: 'Asia' },
   { code: 'bn-BD', name: 'বাংলা (Bangladesh)', flag: '🇧🇩', region: 'Asia' },
-  { code: 'jp-JP', name: '日本語 (Japan)', flag: '🇯🇵', region: 'Asia' },
-  { code: 'ko-KR', name: '한국어 (South Korea)', flag: '🇰🇷', region: 'Asia' },
-  { code: 'ar-SA', name: 'العربية (Saudi Arabia)', flag: '🇸🇦', region: 'Asia' },
-  { code: 'id-ID', name: 'Bahasa Indonesia', flag: '🇮🇩', region: 'Asia' },
-  { code: 'vi-VN', name: 'Tiếng Việt (Vietnam)', flag: '🇻🇳', region: 'Asia' },
-  { code: 'th-TH', name: 'ไทย (Thailand)', flag: '🇹🇭', region: 'Asia' },
-  { code: 'ms-MY', name: 'Bahasa Melayu', flag: '🇲🇾', region: 'Asia' },
-  { code: 'fil-PH', name: 'Filipino', flag: '🇵🇭', region: 'Asia' },
-  { code: 'ur-PK', name: 'اردো (Pakistan)', flag: '🇵🇰', region: 'Asia' },
-
-  // South America
+  { code: 'es-ES', name: 'Español (Spain)', flag: '🇪🇸', region: 'Europe' },
+  { code: 'hi-IN', name: 'हिन्दी (India)', flag: '🇮🇳', region: 'Asia' },
+  { code: 'fr-FR', name: 'Français (France)', flag: '🇫🇷', region: 'Europe' },
+  { code: 'zh-CN', name: '中文 (China)', flag: '🇨🇳', region: 'Asia' },
+  { code: 'ru-RU', name: 'Русский (Russia)', flag: '🇷🇺', region: 'Europe' },
   { code: 'pt-BR', name: 'Português (Brazil)', flag: '🇧🇷', region: 'South America' },
-  { code: 'es-AR', name: 'Español (Argentina)', flag: '🇦🇷', region: 'South America' },
-  { code: 'es-CO', name: 'Español (Colombia)', flag: '🇨🇴', region: 'South America' },
-  { code: 'es-CL', name: 'Español (Chile)', flag: '🇨🇱', region: 'South America' },
-
-  // Africa
-  { code: 'en-NG', name: 'English (Nigeria)', flag: '🇳🇬', region: 'Africa' },
-  { code: 'en-ZA', name: 'English (South Africa)', flag: '🇿🇦', region: 'Africa' },
-  { code: 'ar-EG', name: 'العربية (Egypt)', flag: '🇪🇬', region: 'Africa' },
-  { code: 'fr-MA', name: 'Français (Morocco)', flag: '🇲🇦', region: 'Africa' },
-
-  // Oceania
-  { code: 'en-AU', name: 'English (Australia)', flag: '🇦🇺', region: 'Oceania' },
-  { code: 'en-NZ', name: 'English (New Zealand)', flag: '🇳🇿', region: 'Oceania' },
 ];
 
 export const TRANSLATIONS: Record<string, any> = {
   'en-US': {
-    dashboard: 'Dashboard',
-    assets: 'Import Data & Assets',
-    growth: 'Growth & AI',
-    communications: 'Inbox & Calls',
-    publisher: 'Publisher',
-    academy: 'Academy & Partner',
-    apps: 'Apps & Connections',
-    entertainment: 'Content Hub',
-    smm: 'SMM Smart Panel',
-    vps: 'VPS & Proxies',
-    otp: 'OTP Numbers',
-    funds: 'Add Funds',
-    settings: 'Profile Settings',
-    admin: 'Admin Master',
-    api: 'API Connect',
-    deploy: 'Build & Deploy',
+    [AppRoute.DASHBOARD]: 'Control Deck',
+    [AppRoute.NEWS]: 'Intelligence',
+    [AppRoute.ANALYTICS]: 'ROI Insights',
+    [AppRoute.PUBLISHER]: 'Broadcaster',
+    [AppRoute.INTEGRATIONS]: 'App Grid',
+    [AppRoute.SMM_PANEL]: 'SMM Store',
+    [AppRoute.RDP_SERVICES]: 'Cloud Nodes',
+    [AppRoute.OTP_SERVICES]: 'OTP Gate',
+    [AppRoute.ADD_FUND]: 'Wallet',
+    [AppRoute.SETTINGS]: 'Terminal',
+    [AppRoute.BILLING]: 'Billing Hub',
+    [AppRoute.ADMIN_CONTROL]: 'Root Control',
+    [AppRoute.DEPLOYMENT]: 'Build Core',
+    [AppRoute.COMMUNICATIONS]: 'Comms Hub',
+    growth_engine: 'Growth Engine',
     search: 'Search nodes, data, or stacks...',
-    masterAdmin: 'Master Admin',
-    growthSpecialist: 'Growth Specialist'
+    operational: 'Operational',
+    infrastructure: 'Infrastructure',
+    identity: 'Identity',
+    profile: 'Profile',
+    asset_vault: 'Asset Vault',
+    logout: 'Terminate Session',
+    save_changes: 'Commit Changes',
+    language: 'Global Language Node'
   },
   'bn-BD': {
-    dashboard: 'ড্যাশবোর্ড',
-    assets: 'ডেটা ও অ্যাসেট',
-    growth: 'গ্রোথ ও এআই',
-    communications: 'ইনবক্স ও কল',
-    publisher: 'পাবলিশার',
-    academy: 'একাডেমি',
-    apps: 'অ্যাপস ও কানেকশন',
-    entertainment: 'কনটেন্ট হাব',
-    smm: 'এসএমএম প্যানেল',
-    vps: 'ভিপিএস ও প্রক্সি',
-    otp: 'ওটিপি নাম্বার',
-    funds: 'ফান্ড যোগ করুন',
-    settings: 'প্রোফাইল সেটিংস',
-    admin: 'অ্যাডমিন মাস্টার',
-    api: 'এপিআই কানেক্ট',
-    deploy: 'বিল্ড ও ডেপ্লয়',
+    [AppRoute.DASHBOARD]: 'কন্ট্রোল ডেক',
+    [AppRoute.NEWS]: 'ইন্টেলিজেন্স',
+    [AppRoute.ANALYTICS]: 'ROI ইনসাইটস',
+    [AppRoute.PUBLISHER]: 'ব্রডকাস্টার',
+    [AppRoute.INTEGRATIONS]: 'অ্যাপ গ্রিড',
+    [AppRoute.SMM_PANEL]: 'SMM স্টোর',
+    [AppRoute.RDP_SERVICES]: 'ক্লাউড নোডস',
+    [AppRoute.OTP_SERVICES]: 'OTP গেট',
+    [AppRoute.ADD_FUND]: 'ওয়ালেট',
+    [AppRoute.SETTINGS]: 'টার্মিনাল',
+    [AppRoute.BILLING]: 'বিলিং হাব',
+    [AppRoute.ADMIN_CONTROL]: 'রুট কন্ট্রোল',
+    [AppRoute.DEPLOYMENT]: 'বিল্ড কোর',
+    [AppRoute.COMMUNICATIONS]: 'যোগাযোগ হাব',
+    growth_engine: 'গ্রোথ ইঞ্জিন',
     search: 'সার্চ করুন...',
-    masterAdmin: 'প্রধান অ্যাডমিন',
-    growthSpecialist: 'গ্রোথ স্পেশালিস্ট'
-  },
-  'hi-IN': {
-    dashboard: 'डैशबोर्ड',
-    assets: 'डेटा और एसेट',
-    growth: 'ग्रोथ और एआई',
-    communications: 'इनबॉक्स और कॉल',
-    publisher: 'पब्लिशर',
-    academy: 'अकादमी',
-    apps: 'ऐप्स और कनेक्शन',
-    entertainment: 'कंटेंट हब',
-    smm: 'एसएमएम पैनल',
-    vps: 'वीपीएस और प्रॉक्सी',
-    otp: 'ओटीपी नंबर',
-    funds: 'फंड जोड़ें',
-    settings: 'प्रोफ़ाइल सेटिंग्स',
-    admin: 'एडमिन मास्टर',
-    api: 'एपीआई कनेक्ट',
-    deploy: 'बिल्ड और डेप्लॉय',
-    search: 'खोजें...',
-    masterAdmin: 'मास्टर एडमिन',
-    growthSpecialist: 'ग्रोथ विशेषज्ञ'
+    operational: 'অপারেশনাল',
+    infrastructure: 'ইনফ্রাস্ট্রাকচার',
+    identity: 'আইডেন্টিটি',
+    profile: 'প্রোফাইল',
+    asset_vault: 'অ্যাসেট ভল্ট',
+    logout: 'লগ আউট',
+    save_changes: 'পরিবর্তন সংরক্ষণ করুন',
+    language: 'ভাষা পরিবর্তন'
   },
   'es-ES': {
-    dashboard: 'Tablero',
-    assets: 'Importar Datos',
-    growth: 'Crecimiento e IA',
-    communications: 'Bandeja y Llamadas',
-    publisher: 'Publicador',
-    academy: 'Academia',
-    apps: 'Apps y Conexiones',
-    entertainment: 'Centro de Contenido',
-    smm: 'Panel SMM',
-    vps: 'VPS y Proxies',
-    otp: 'Números OTP',
-    funds: 'Agregar Fondos',
-    settings: 'Ajustes de Perfil',
-    admin: 'Maestro Admin',
-    api: 'Conexión API',
-    deploy: 'Construir y Desplegar',
+    [AppRoute.DASHBOARD]: 'Panel de Control',
+    [AppRoute.NEWS]: 'Inteligencia',
+    [AppRoute.ANALYTICS]: 'Métricas ROI',
+    [AppRoute.PUBLISHER]: 'Transmisor',
+    [AppRoute.INTEGRATIONS]: 'Red de Apps',
+    [AppRoute.SMM_PANEL]: 'Tienda SMM',
+    [AppRoute.RDP_SERVICES]: 'Nodos Cloud',
+    [AppRoute.OTP_SERVICES]: 'Portal OTP',
+    [AppRoute.ADD_FUND]: 'Billetera',
+    [AppRoute.SETTINGS]: 'Terminal',
+    [AppRoute.BILLING]: 'Centro de Facturación',
+    [AppRoute.ADMIN_CONTROL]: 'Control Raíz',
+    [AppRoute.DEPLOYMENT]: 'Núcleo Build',
+    [AppRoute.COMMUNICATIONS]: 'Centro de Coms',
+    growth_engine: 'Motor de Crecimiento',
     search: 'Buscar nodos...',
-    masterAdmin: 'Admin Maestro',
-    growthSpecialist: 'Especialista en Crecimiento'
+    operational: 'Operacional',
+    infrastructure: 'Infraestructura',
+    identity: 'Identidad',
+    profile: 'Perfil',
+    asset_vault: 'Bóveda de Activos',
+    logout: 'Cerrar Sesión',
+    save_changes: 'Guardar Cambios',
+    language: 'Idioma Global'
+  },
+  'hi-IN': {
+    [AppRoute.DASHBOARD]: 'कंट्रोल डेस्क',
+    [AppRoute.NEWS]: 'इंटेलिजेंस',
+    [AppRoute.ANALYTICS]: 'ROI इनसाइट्स',
+    [AppRoute.PUBLISHER]: 'ब्रॉडकास्टर',
+    [AppRoute.INTEGRATIONS]: 'ऐप ग्रिड',
+    [AppRoute.SMM_PANEL]: 'SMM स्टोर',
+    [AppRoute.RDP_SERVICES]: 'क्लाउड नोड्स',
+    [AppRoute.OTP_SERVICES]: 'OTP गेट',
+    [AppRoute.ADD_FUND]: 'वॉलेट',
+    [AppRoute.SETTINGS]: 'टर्मिनल',
+    [AppRoute.BILLING]: 'बिलिंग हब',
+    [AppRoute.ADMIN_CONTROL]: 'रूट कंट्रोल',
+    [AppRoute.DEPLOYMENT]: 'बिल्ड कोर',
+    [AppRoute.COMMUNICATIONS]: 'संचार हब',
+    growth_engine: 'ग्रोथ इंजन',
+    search: 'खोजें...',
+    operational: 'परिचालन',
+    infrastructure: 'बुनियादी ढांचा',
+    identity: 'पहचान',
+    profile: 'प्रोफ़ाइल',
+    asset_vault: 'संपत्ति वॉल्ट',
+    logout: 'लॉग आउट',
+    save_changes: 'परिवर्तन सहेजें',
+    language: 'वैश्विक भाषा'
   }
 };
 
@@ -327,79 +307,27 @@ export const SMM_SERVICES = [
     { id: '304', type: 'Views', name: 'TikTok Views [Instant]', price: 0.05, per: 1000, speed: '10M/Day', min: 1000, max: 100000000, avgTime: 'Instant', guarantee: 'Lifetime', provider: 'ViralNodes', region: 'Global' },
     { id: '305', type: 'Shares', name: 'TikTok Shares & Saves', price: 0.25, per: 1000, speed: 'Instant', min: 100, max: 500000, avgTime: 'Instant', guarantee: 'Lifetime', provider: 'TikViral', region: 'Global' },
   ]},
-  { category: 'YouTube', group: 'Media', icon: 'fa-brands fa-youtube', color: '#FF0000', items: [
-    { id: '401', type: 'Views', name: 'YouTube Views [High Retention]', price: 4.50, per: 1000, speed: '10K/Day', min: 500, max: 2000000, avgTime: '24 Hours', guarantee: 'Lifetime', provider: 'YTGuru', region: 'Global' },
-    { id: '402', type: 'Views', name: 'YouTube Views [India] - Targeted', price: 3.50, per: 1000, speed: '20K/Day', min: 1000, max: 500000, avgTime: '12 Hours', guarantee: 'Lifetime', provider: 'IndoMedia', region: 'India' },
-    { id: '403', type: 'Subscribers', name: 'YouTube Subscribers [Real]', price: 25.00, per: 1000, speed: '500/Day', min: 50, max: 50000, avgTime: '48 Hours', guarantee: '30 Days', provider: 'SubBoost', region: 'Global' },
-    { id: '404', type: 'Likes', name: 'YouTube Likes [Non-Drop]', price: 2.50, per: 1000, speed: 'Instant', min: 50, max: 100000, avgTime: '1 Hour', guarantee: 'Lifetime', provider: 'FastLikes', region: 'Global' },
-    { id: '405', type: 'Watch Time', name: 'YouTube Watch Time [4000 Hours Pack]', price: 65.00, per: 1000, speed: 'Organic', min: 500, max: 4000, avgTime: '7-14 Days', guarantee: 'Monetization', provider: 'YTGuru', region: 'Global' },
-  ]},
-  { category: 'Telegram', group: 'Messaging', icon: 'fa-brands fa-telegram', color: '#24A1DE', items: [
-    { id: '701', type: 'Members', name: 'Telegram Channel Members [Global]', price: 2.10, per: 1000, speed: 'Instant', min: 100, max: 200000, avgTime: '10 Mins', guarantee: 'Non-Drop', provider: 'TeleForce', region: 'Global' },
-    { id: '702', type: 'Members', name: 'Telegram Members [China] - Crypto', price: 5.50, per: 1000, speed: '2K/Day', min: 100, max: 50000, avgTime: '4 Hours', guarantee: 'Non-Drop', provider: 'AsiaNodes', region: 'China' },
-    { id: '703', type: 'Members', name: 'Telegram Members [Russia] - Real', price: 4.80, per: 1000, speed: '5K/Day', min: 100, max: 100000, avgTime: '2 Hours', guarantee: '30 Days', provider: 'RuGram', region: 'Russia' },
-    { id: '704', type: 'Views', name: 'Telegram Post Views [Last 5 Posts]', price: 0.45, per: 1000, speed: 'Instant', min: 500, max: 1000000, avgTime: 'Instant', guarantee: 'Lifetime', provider: 'FastLikes', region: 'Global' },
-  ]},
-  { category: 'X / Twitter', group: 'Social', icon: 'fa-brands fa-x-twitter', color: '#000000', items: [
-    { id: '501', type: 'Followers', name: 'X Followers [NFT/Crypto Profiles]', price: 5.50, per: 1000, speed: '2K/Day', min: 100, max: 50000, avgTime: '12 Hours', guarantee: '30 Days', provider: 'CryptoBoost', region: 'Global' },
-    { id: '502', type: 'Likes', name: 'X Likes/Favorites', price: 1.80, per: 1000, speed: 'Fast', min: 50, max: 20000, avgTime: '30 Mins', guarantee: 'Non-Drop', provider: 'TweetDeck', region: 'Global' },
-    { id: '503', type: 'Retweets', name: 'X Retweets [USA] - Real', price: 8.50, per: 1000, speed: '500/Day', min: 20, max: 5000, avgTime: '4 Hours', guarantee: 'Non-Drop', provider: 'USAGrowth', region: 'USA' },
-  ]},
-  { category: 'Spotify', group: 'Media', icon: 'fa-brands fa-spotify', color: '#1DB954', items: [
-    { id: '801', type: 'Plays', name: 'Spotify Plays [Premium/US]', price: 1.80, per: 1000, speed: '5K/Day', min: 1000, max: 1000000, avgTime: '24 Hours', guarantee: 'Lifetime', provider: 'MusicPush', region: 'USA' },
-    { id: '802', type: 'Plays', name: 'Spotify Plays [Global] - Mixed', price: 0.90, per: 1000, speed: '10K/Day', min: 1000, max: 5000000, avgTime: '12 Hours', guarantee: 'Lifetime', provider: 'StreamKing', region: 'Global' },
-    { id: '803', type: 'Listeners', name: 'Spotify Monthly Listeners', price: 3.20, per: 1000, speed: 'Natural', min: 1000, max: 500000, avgTime: '48 Hours', guarantee: '30 Days', provider: 'MusicPush', region: 'Global' },
-  ]},
-  { category: 'Discord', group: 'Messaging', icon: 'fa-brands fa-discord', color: '#5865F2', items: [
-    { id: '901', type: 'Members', name: 'Discord Server Members [Online]', price: 12.00, per: 1000, speed: 'Fast', min: 100, max: 10000, avgTime: '12 Hours', guarantee: '30 Days', provider: 'DiscordHype', region: 'Global' },
-    { id: '902', type: 'Members', name: 'Discord Server Members [Offline]', price: 6.50, per: 1000, speed: 'Fast', min: 100, max: 20000, avgTime: '6 Hours', guarantee: '30 Days', provider: 'DiscordHype', region: 'Global' },
-    { id: '903', type: 'Boosts', name: 'Discord Server Boosts [3 Months]', price: 4.50, per: 1, speed: 'Instant', min: 1, max: 14, avgTime: '15 Mins', guarantee: '90 Days', provider: 'NitroBoost', region: 'Global' },
-  ]},
-  { category: 'LinkedIn', group: 'Social', icon: 'fa-brands fa-linkedin', color: '#0A66C2', items: [
-    { id: '601', type: 'Followers', name: 'LinkedIn Followers [Professional]', price: 15.00, per: 1000, speed: '500/Day', min: 50, max: 20000, avgTime: '24 Hours', guarantee: '30 Days', provider: 'BizGrow', region: 'Global' },
-    { id: '602', type: 'Followers', name: 'LinkedIn Followers [USA] - Real', price: 25.00, per: 1000, speed: '200/Day', min: 50, max: 5000, avgTime: '48 Hours', guarantee: '30 Days', provider: 'USAGrowth', region: 'USA' },
-    { id: '603', type: 'Likes', name: 'LinkedIn Post Likes', price: 8.00, per: 1000, speed: 'Fast', min: 50, max: 5000, avgTime: '2 Hours', guarantee: 'Non-Drop', provider: 'BizGrow', region: 'Global' },
-  ]},
-  { category: 'Twitch', group: 'Media', icon: 'fa-brands fa-twitch', color: '#9146FF', items: [
-    { id: '1001', type: 'Followers', name: 'Twitch Followers', price: 1.80, per: 1000, speed: 'Fast', min: 100, max: 50000, avgTime: '4 Hours', guarantee: 'Non-Drop', provider: 'StreamKing', region: 'Global' },
-    { id: '1002', type: 'Live', name: 'Twitch Live Views [60 Min]', price: 15.00, per: 1000, speed: 'Instant', min: 50, max: 5000, avgTime: '2 Mins', guarantee: 'Concurrent', provider: 'LiveBoost', region: 'Global' },
-  ]},
-  { category: 'Website Traffic', group: 'Web', icon: 'fa-solid fa-globe', color: '#4F46E5', items: [
-    { id: '1401', type: 'Traffic', name: 'Google Organic Search Traffic [USA]', price: 1.50, per: 1000, speed: 'Variable', min: 1000, max: 1000000, avgTime: '24 Hours', guarantee: 'Analytics', provider: 'TrafficSource', region: 'USA' },
-    { id: '1402', type: 'Traffic', name: 'Direct Traffic [Global]', price: 0.80, per: 1000, speed: 'Fast', min: 1000, max: 5000000, avgTime: '12 Hours', guarantee: 'Analytics', provider: 'TrafficSource', region: 'Global' },
-    { id: '1403', type: 'Traffic', name: 'Mobile Traffic [Android/iOS]', price: 2.20, per: 1000, speed: 'Variable', min: 1000, max: 500000, avgTime: '24 Hours', guarantee: 'Analytics', provider: 'AppFlow', region: 'Global' },
-  ]},
-  { category: 'Reviews', group: 'Web', icon: 'fa-solid fa-star', color: '#F59E0B', items: [
-    { id: '1501', type: 'Reviews', name: 'Google Maps Reviews [5 Star + Text]', price: 150.00, per: 100, speed: 'Drip Feed', min: 5, max: 1000, avgTime: 'Manual', guarantee: '30 Days', provider: 'LocalRank', region: 'Global' },
-    { id: '1502', type: 'Reviews', name: 'Trustpilot Reviews [Verified]', price: 250.00, per: 100, speed: 'Slow', min: 5, max: 500, avgTime: 'Manual', guarantee: '30 Days', provider: 'ReviewPro', region: 'Global' },
-  ]},
-];
-
-export const PROXY_DATA = [
-  { id: 'webshare', name: 'Social Stack Proxy Node', type: 'Static Residential', provider: 'Webshare', providerIcon: 'fa-solid fa-share-nodes', price: 2.5, unit: 'Proxy/Mo', feature: 'Optimized for Ad Accounts', locations: ['USA', 'UK', 'CA'], brandColor: '#2563EB' },
-  { id: 'kingip', name: 'Global Rotating Residential', type: 'Residential', provider: 'KingIP', providerIcon: 'fa-solid fa-crown', price: 4.0, unit: 'GB', feature: 'Bypass Platform Detection', locations: ['Global'], brandColor: '#F59E0B' },
-  { id: 'brightdata', name: 'Premium Mobile 4G', type: 'Mobile', provider: 'BrightData', providerIcon: 'fa-solid fa-signal', price: 12.0, unit: 'GB', feature: 'Real User Devices', locations: ['USA', 'DE', 'FR'], brandColor: '#10B981' },
-  { id: 'iproyal', name: 'Datacenter Mix', type: 'Datacenter', provider: 'IPRoyal', providerIcon: 'fa-solid fa-server', price: 1.5, unit: 'Proxy/Mo', feature: 'High Speed', locations: ['USA', 'UK', 'SG', 'JP'], brandColor: '#8B5CF6' },
-  { id: 'smartproxy', name: 'Residential Proxies', type: 'Residential', provider: 'SmartProxy', providerIcon: 'fa-solid fa-globe', price: 5.5, unit: 'GB', feature: '195+ Locations', locations: ['Global', 'USA', 'UK', 'IN'], brandColor: '#EC4899' },
-  { id: 'oxylabs', name: 'Data Center Dedicated', type: 'Datacenter', provider: 'Oxylabs', providerIcon: 'fa-solid fa-building-shield', price: 2.0, unit: 'IP/Mo', feature: 'Unlimited Bandwidth', locations: ['USA', 'DE', 'NL'], brandColor: '#EF4444' }
-];
-
-export const OTP_DATA = [
-  { id: 'whatsapp', name: 'WhatsApp Business', icon: 'fa-whatsapp', countries: ['USA', 'UK', 'BD', 'RU', 'IN', 'CN', 'BR', 'ID'], price: 1.20 },
-  { id: 'google', name: 'Google Ads Account', icon: 'fa-google', countries: ['USA', 'UK', 'PL', 'DE', 'FR', 'CA', 'AU'], price: 0.85 },
-  { id: 'facebook', name: 'Facebook', icon: 'fa-facebook', countries: ['USA', 'UK', 'TR', 'VN', 'PH'], price: 0.50 },
-  { id: 'telegram', name: 'Telegram', icon: 'fa-telegram', countries: ['RU', 'UA', 'KZ', 'US', 'ID'], price: 0.40 },
-  { id: 'openai', name: 'OpenAI / ChatGPT', icon: 'fa-robot', countries: ['USA', 'UK', 'FR', 'DE'], price: 1.00 }
 ];
 
 export const RDP_SERVICES_DATA = [
-  { name: 'Entry Node', provider: 'DigitalOcean', providerIcon: 'fa-brands fa-digital-ocean', cpu: '2 Core', ram: '2GB', storage: '40GB SSD', price: 9, region: 'Global-1', brandColor: '#0080FF' },
-  { name: 'Starter Node', provider: 'Linode', providerIcon: 'fa-brands fa-linux', cpu: '4 Core', ram: '4GB', storage: '60GB SSD', price: 15, region: 'USA-Central', brandColor: '#02f202' },
-  { name: 'Starter Pro', provider: 'Vultr', providerIcon: 'fa-solid fa-server', cpu: '4 Core', ram: '8GB', storage: '80GB SSD', price: 19, region: 'USA-East', brandColor: '#007bfc' },
-  { name: 'Growth Station', provider: 'AWS', providerIcon: 'fa-brands fa-aws', cpu: '8 Core', ram: '16GB', storage: '160GB NVMe', price: 35, region: 'Germany-Frankfurt', brandColor: '#FF9900' },
-  { name: 'Scale Master', provider: 'Google Cloud', providerIcon: 'fa-brands fa-google', cpu: '16 Core', ram: '32GB', storage: '320GB NVMe', price: 69, region: 'UK-London', brandColor: '#4285F4' },
-  { name: 'Elite Performance', provider: 'Azure', providerIcon: 'fa-brands fa-microsoft', cpu: '32 Core', ram: '64GB', storage: '500GB NVMe', price: 119, region: 'Low Latency Hub', brandColor: '#0078D4' },
-  { name: 'Power Core', provider: 'AWS', providerIcon: 'fa-brands fa-aws', cpu: '64 Core', ram: '128GB', storage: '1TB NVMe', price: 199, region: 'Dedicated Port', brandColor: '#FF9900' },
-  { name: 'Titan Node', provider: 'Google Cloud', providerIcon: 'fa-brands fa-google', cpu: '96 Core', ram: '256GB', storage: '2TB NVMe', price: 289, region: 'Dedicated High BW', brandColor: '#4285F4' },
-  { name: 'Quantum Core', provider: 'Azure', providerIcon: 'fa-brands fa-microsoft', cpu: '128 Core', ram: '512GB', storage: '4TB NVMe', price: 549, region: 'Ultra-High Density', brandColor: '#0078D4' }
+  { provider: 'DigitalOcean', providerIcon: 'fa-digital-ocean', brandColor: '#0080FF', name: 'Basic Droplet', cpu: '1 vCPU', ram: '2 GB', storage: '50 GB NVMe', price: 12, region: 'NYC-3' },
+  { provider: 'DigitalOcean', providerIcon: 'fa-digital-ocean', brandColor: '#0080FF', name: 'Premium Droplet', cpu: '2 vCPU', ram: '4 GB', storage: '80 GB NVMe', price: 24, region: 'AMS-3' },
+  { provider: 'AWS', providerIcon: 'fa-aws', brandColor: '#FF9900', name: 't3.medium Instance', cpu: '2 vCPU', ram: '4 GB', storage: 'EBS Only', price: 35, region: 'us-east-1' },
+  { provider: 'AWS', providerIcon: 'fa-aws', brandColor: '#FF9900', name: 'c5.large Instance', cpu: '2 vCPU', ram: '4 GB', storage: 'Compute Optimized', price: 62, region: 'us-west-2' },
+  { provider: 'Google', providerIcon: 'fa-google', brandColor: '#4285F4', name: 'e2-standard-2', cpu: '2 vCPU', ram: '8 GB', storage: 'Balanced Disk', price: 48, region: 'us-central1' },
+];
+
+export const PROXY_DATA = [
+  { id: 'p1', provider: 'Luminati', providerIcon: 'fa-solid fa-network-wired', brandColor: '#4F46E5', name: 'Residential Proxy', type: 'Residential', feature: 'Rotating IP', price: 12.50, unit: 'GB', locations: ['USA', 'UK', 'Germany'] },
+  { id: 'p2', provider: 'Oxylabs', providerIcon: 'fa-solid fa-shield-halved', brandColor: '#10B981', name: 'Mobile Proxy', type: 'Mobile', feature: '4G/LTE Speeds', price: 45.00, unit: 'Month', locations: ['Global', 'India', 'Brazil'] },
+  { id: 'p3', provider: 'Smartproxy', providerIcon: 'fa-solid fa-server', brandColor: '#F59E0B', name: 'Datacenter Proxy', type: 'Datacenter', feature: 'Unlimited Traffic', price: 0.50, unit: 'IP', locations: ['USA', 'France', 'Canada'] },
+];
+
+export const OTP_DATA = [
+  { id: 'otp1', name: 'WhatsApp Verification', icon: 'fa-brands fa-whatsapp', price: 0.85, countries: ['USA', 'UK', 'Germany', 'Bangladesh', 'India'] },
+  { id: 'otp2', name: 'Telegram Auth', icon: 'fa-brands fa-telegram', price: 0.45, countries: ['Russia', 'Ukraine', 'Brazil', 'Thailand'] },
+  { id: 'otp3', name: 'Google Workspace', icon: 'fa-brands fa-google', price: 1.20, countries: ['USA', 'Canada', 'France', 'Australia'] },
+  { id: 'otp4', name: 'TikTok Verification', icon: 'fa-brands fa-tiktok', price: 0.60, countries: ['Global', 'Vietnam', 'Philippines'] },
+  { id: 'otp5', name: 'Instagram / Meta', icon: 'fa-brands fa-instagram', price: 0.75, countries: ['Global', 'Mexico', 'Spain'] },
+  { id: 'otp6', name: 'Netflix Account', icon: 'fa-solid fa-tv', price: 1.50, countries: ['USA', 'Turkey', 'Argentina'] },
 ];

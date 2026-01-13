@@ -18,27 +18,27 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
   const t = TRANSLATIONS[user.language || 'en-US'] || TRANSLATIONS['en-US'];
 
   const coreMenuItems = [
-    { id: AppRoute.DASHBOARD, label: 'Control Deck', icon: 'fa-solid fa-house', color: 'text-blue-400' },
-    { id: AppRoute.NEWS, label: 'Intelligence', icon: 'fa-solid fa-rss', color: 'text-rose-400' },
-    { id: AppRoute.ANALYTICS, label: 'ROI Insights', icon: 'fa-solid fa-chart-line', color: 'text-emerald-400' },
-    { id: AppRoute.PUBLISHER, label: 'Broadcaster', icon: 'fa-solid fa-paper-plane', color: 'text-indigo-400' },
-    { id: AppRoute.INTEGRATIONS, label: 'App Grid', icon: 'fa-solid fa-link', color: 'text-amber-400' },
+    { id: AppRoute.DASHBOARD, label: t[AppRoute.DASHBOARD], icon: 'fa-solid fa-house', color: 'text-blue-400' },
+    { id: AppRoute.NEWS, label: t[AppRoute.NEWS], icon: 'fa-solid fa-rss', color: 'text-rose-400' },
+    { id: AppRoute.ANALYTICS, label: t[AppRoute.ANALYTICS], icon: 'fa-solid fa-chart-line', color: 'text-emerald-400' },
+    { id: AppRoute.PUBLISHER, label: t[AppRoute.PUBLISHER], icon: 'fa-solid fa-paper-plane', color: 'text-indigo-400' },
+    { id: AppRoute.INTEGRATIONS, label: t[AppRoute.INTEGRATIONS], icon: 'fa-solid fa-link', color: 'text-amber-400' },
   ];
 
   const marketMenuItems = [
-    { id: AppRoute.SMM_PANEL, label: 'SMM Store', icon: 'fa-solid fa-cart-shopping', color: 'text-violet-400' },
-    { id: AppRoute.RDP_SERVICES, label: 'Cloud Nodes', icon: 'fa-solid fa-server', color: 'text-orange-400' },
-    { id: AppRoute.OTP_SERVICES, label: 'OTP Gate', icon: 'fa-solid fa-shield-halved', color: 'text-cyan-400' },
+    { id: AppRoute.SMM_PANEL, label: t[AppRoute.SMM_PANEL], icon: 'fa-solid fa-cart-shopping', color: 'text-violet-400' },
+    { id: AppRoute.RDP_SERVICES, label: t[AppRoute.RDP_SERVICES], icon: 'fa-solid fa-server', color: 'text-orange-400' },
+    { id: AppRoute.OTP_SERVICES, label: t[AppRoute.OTP_SERVICES], icon: 'fa-solid fa-shield-halved', color: 'text-cyan-400' },
   ];
 
   const systemMenuItems = [
-    { id: AppRoute.ADD_FUND, label: 'Wallet', icon: 'fa-solid fa-wallet', color: 'text-teal-400' },
-    { id: AppRoute.SETTINGS, label: 'Terminal', icon: 'fa-solid fa-terminal', color: 'text-slate-400' },
+    { id: AppRoute.ADD_FUND, label: t[AppRoute.ADD_FUND], icon: 'fa-solid fa-wallet', color: 'text-teal-400' },
+    { id: AppRoute.SETTINGS, label: t[AppRoute.SETTINGS], icon: 'fa-solid fa-terminal', color: 'text-slate-400' },
   ];
 
   const adminMenuItems = [
-    { id: AppRoute.ADMIN_CONTROL, label: 'Root Control', icon: 'fa-solid fa-fingerprint', color: 'text-rose-500' },
-    { id: AppRoute.DEPLOYMENT, label: 'Build Core', icon: 'fa-solid fa-rocket', color: 'text-indigo-500' },
+    { id: AppRoute.ADMIN_CONTROL, label: t[AppRoute.ADMIN_CONTROL], icon: 'fa-solid fa-fingerprint', color: 'text-rose-500' },
+    { id: AppRoute.DEPLOYMENT, label: t[AppRoute.DEPLOYMENT], icon: 'fa-solid fa-rocket', color: 'text-indigo-500' },
   ];
 
   const getButtonStyle = (active: boolean) => {
@@ -72,10 +72,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
           className={`w-full flex items-center gap-3 px-5 py-6 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all bg-indigo-600 text-white shadow-2xl shadow-indigo-600/20 hover:scale-[1.03] active:scale-95 mb-6 group ${isCollapsed ? 'justify-center' : ''}`}
         >
           <i className="fa-solid fa-wand-magic-sparkles text-xl group-hover:rotate-12 transition-transform"></i>
-          {!isCollapsed && <span>Growth Engine</span>}
+          {!isCollapsed && <span>{t.growth_engine}</span>}
         </button>
 
-        {!isCollapsed && <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em] px-4 py-4">Operational</p>}
+        {!isCollapsed && <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em] px-4 py-4">{t.operational}</p>}
         {coreMenuItems.map((item) => (
           <button key={item.id} onClick={() => setRoute(item.id)} className={getButtonStyle(currentRoute === item.id)}>
             <i className={`${item.icon} text-xl ${currentRoute === item.id ? 'text-white' : item.color}`}></i>
@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
         ))}
 
         <div className="h-6"></div>
-        {!isCollapsed && <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em] px-4 py-4">Infrastructure</p>}
+        {!isCollapsed && <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em] px-4 py-4">{t.infrastructure}</p>}
         {marketMenuItems.map((item) => (
           <button key={item.id} onClick={() => setRoute(item.id)} className={getButtonStyle(currentRoute === item.id)}>
             <i className={`${item.icon} text-xl ${currentRoute === item.id ? 'text-white' : item.color}`}></i>
@@ -94,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
         ))}
 
         <div className="h-6"></div>
-        {!isCollapsed && <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em] px-4 py-4">Identity</p>}
+        {!isCollapsed && <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em] px-4 py-4">{t.identity}</p>}
         {systemMenuItems.map((item) => (
           <button key={item.id} onClick={() => setRoute(item.id)} className={getButtonStyle(currentRoute === item.id)}>
             <i className={`${item.icon} text-xl ${currentRoute === item.id ? 'text-white' : item.color}`}></i>

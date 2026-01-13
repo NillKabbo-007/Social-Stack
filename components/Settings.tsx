@@ -26,6 +26,8 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
 
+  const t = TRANSLATIONS[user.language || 'en-US'] || TRANSLATIONS['en-US'];
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
@@ -52,7 +54,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20 select-none">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-            <h2 className="text-4xl font-display font-black text-white uppercase tracking-tighter">Terminal Settings</h2>
+            <h2 className="text-4xl font-display font-black text-white uppercase tracking-tighter">{t.settings}</h2>
             <p className="text-slate-400 font-medium">Calibrate your identity nodes and global display preferences.</p>
         </div>
         
@@ -61,13 +63,13 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
                 onClick={() => setActiveTab('profile')} 
                 className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'profile' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-200'}`}
             >
-                <i className="fa-solid fa-id-card"></i> Identity
+                <i className="fa-solid fa-id-card"></i> {t.identity}
             </button>
             <button 
                 onClick={() => setActiveTab('files')} 
                 className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'files' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-200'}`}
             >
-                <i className="fa-solid fa-folder-open"></i> Asset Vault
+                <i className="fa-solid fa-folder-open"></i> {t.asset_vault}
             </button>
         </div>
       </div>
@@ -128,7 +130,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 pt-10 border-t border-slate-800">
                 <div className="space-y-4 relative" ref={languageDropdownRef}>
                   <div className="flex justify-between items-center ml-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Language Node</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.language}</label>
                     <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">v3.4 Multilingual</span>
                   </div>
                   <button type="button" onClick={() => setIsLanguageOpen(!isLanguageOpen)} className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-5 text-sm text-white font-black flex justify-between items-center shadow-inner hover:bg-slate-900 transition-all group">
@@ -176,7 +178,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
               <div className="pt-6">
                 <button type="submit" disabled={isUpdating} className="w-full py-6 bg-indigo-600 rounded-[2rem] font-display font-black text-sm uppercase tracking-[0.2em] shadow-[0_20px_50px_rgba(99,102,241,0.2)] hover:bg-indigo-500 transition-all btn-3d active:scale-95 flex items-center justify-center gap-4">
                     {isUpdating ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-shield-check"></i>}
-                    {isUpdating ? "Synchronizing Matrix..." : "Commit Profile Changes"}
+                    {isUpdating ? "Synchronizing Matrix..." : t.save_changes}
                 </button>
               </div>
             </form>
@@ -190,7 +192,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
                       <p className="text-xs text-slate-400 font-medium leading-relaxed">Destroy active session node and flush identity caches.</p>
                   </div>
               </div>
-              <button onClick={() => window.location.reload()} className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">Terminate Node</button>
+              <button onClick={() => window.location.reload()} className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">{t.logout}</button>
           </div>
         </div>
       </div>
