@@ -22,10 +22,15 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
 
   const paymentMethods = [
     { id: 'paypal', name: 'PayPal', icon: 'fa-brands fa-paypal', color: 'bg-[#003087] text-white' },
+    { id: 'revolut', name: 'Revolut', icon: 'fa-solid fa-r', color: 'bg-white text-black' },
+    { id: 'stripe', name: 'Visa/Master', icon: 'fa-brands fa-stripe', color: 'bg-[#635BFF] text-white' },
+    { id: 'apple', name: 'Apple Pay', icon: 'fa-brands fa-apple', color: 'bg-black text-white' },
+    { id: 'google', name: 'Google Pay', icon: 'fa-brands fa-google-pay', color: 'bg-slate-100 text-slate-800' },
+    { id: 'skrill', name: 'Skrill', icon: 'fa-solid fa-wallet', color: 'bg-[#802444] text-white' },
+    { id: 'neteller', name: 'Neteller', icon: 'fa-solid fa-money-bill-1-wave', color: 'bg-[#8BB22B] text-white' },
     { id: 'payoneer', name: 'Payoneer', icon: 'fa-solid fa-p', color: 'bg-[#ff4800] text-white' },
     { id: 'wise', name: 'Wise', icon: 'fa-solid fa-w', color: 'bg-[#00b9ff] text-white' },
     { id: 'binance', name: 'Binance Pay', icon: 'fa-brands fa-bitcoin', color: 'bg-[#F0B90B] text-black' },
-    { id: 'stripe', name: 'Visa / Mastercard', icon: 'fa-brands fa-stripe', color: 'bg-[#635BFF] text-white' },
     { id: 'perfect', name: 'Perfect Money', icon: 'fa-solid fa-money-bill-transfer', color: 'bg-[#ee1c25] text-white' },
     { id: 'bkash', name: 'bKash Mobile', icon: 'fa-solid fa-mobile-screen', color: 'bg-[#E2136E] text-white' },
   ];
@@ -40,7 +45,7 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
         <div className="bg-indigo-600/10 border border-indigo-500/20 px-8 py-6 rounded-[2rem] text-center shadow-2xl relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600/5 to-transparent"></div>
           <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1 relative z-10">Available Liquidity</p>
-          <p className="text-4xl font-display font-black glowing-text animate-pulse-glow relative z-10">{formatPrice(balanceUSD)}</p>
+          <p className="text-4xl font-display font-black glowing-text relative z-10">{formatPrice(balanceUSD)}</p>
         </div>
       </div>
 
@@ -55,13 +60,13 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                   key={m.id}
                   onClick={() => setMethod(m.id)}
                   className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all active:scale-95 ${
-                    method === m.id ? 'border-indigo-500 bg-indigo-500/10 shadow-2xl' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                    method === m.id ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
                   }`}
                 >
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg ${m.color}`}>
                     <i className={`${m.icon}`}></i>
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">{m.name}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 truncate w-full text-center">{m.name}</span>
                 </button>
               ))}
             </div>
@@ -75,7 +80,7 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-3xl pl-12 pr-8 py-5 text-3xl font-display font-black focus:ring-2 focus:ring-indigo-500 text-white shadow-inner"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-3xl pl-12 pr-8 py-5 text-3xl font-display font-black focus:ring-2 focus:ring-indigo-500 text-white shadow-inner glowing-text"
                     placeholder="0.00"
                   />
                 </div>
@@ -113,8 +118,8 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
             <div className="space-y-4 overflow-y-auto no-scrollbar">
               {[
                 { id: 'TX-9902', method: 'Binance', amount: 150, date: 'Live', status: 'Completed' },
-                { id: 'TX-9281', method: 'Wise', amount: 50, date: 'Oct 14', status: 'Completed' },
-                { id: 'TX-9275', method: 'Paypal', amount: 20, date: 'Oct 12', status: 'Completed' },
+                { id: 'TX-9281', method: 'Revolut', amount: 50, date: 'Oct 14', status: 'Completed' },
+                { id: 'TX-9275', method: 'Apple Pay', amount: 20, date: 'Oct 12', status: 'Completed' },
                 { id: 'TX-9210', method: 'Stripe', amount: 100, date: 'Oct 08', status: 'Pending' }
               ].map(tx => (
                 <div key={tx.id} className="flex items-center justify-between p-5 bg-slate-950/40 rounded-2xl border border-white/5 group hover:bg-slate-900/60 transition-all">
@@ -128,7 +133,7 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-black text-emerald-400">+{formatPrice(tx.amount)}</p>
+                    <p className="text-sm font-black text-emerald-400 glowing-emerald">+{formatPrice(tx.amount)}</p>
                     <p className={`text-[8px] uppercase font-black tracking-widest ${tx.status === 'Completed' ? 'text-emerald-500' : 'text-amber-500'}`}>{tx.status}</p>
                   </div>
                 </div>

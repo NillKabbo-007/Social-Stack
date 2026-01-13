@@ -10,15 +10,6 @@ interface BulkPublisherProps {
   onDeleteMedia: (id: string) => void;
 }
 
-interface QueueItem {
-  id: string;
-  content: string;
-  platforms: string[];
-  status: 'Draft' | 'Scheduled' | 'Published';
-  scheduledTime: string;
-  mediaUrl?: string;
-}
-
 // Helper to highlight hashtags and mentions
 const RichText = ({ text, className = "", highlightColor = "text-[#1d9bf0]" }: { text: string, className?: string, highlightColor?: string }) => {
     if (!text) return null;
@@ -375,11 +366,18 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                             <button onClick={() => setMediaTab('upload')} className={`pb-2 px-2 text-[10px] font-black uppercase tracking-widest transition-all ${mediaTab === 'upload' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-300'}`}>Library & Upload</button>
                             <button onClick={() => setMediaTab('ai')} className={`pb-2 px-2 text-[10px] font-black uppercase tracking-widest transition-all ${mediaTab === 'ai' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-300'}`}>AI Vision Studio</button>
                         </div>
-                        {mediaTab === 'upload' && selectedIds.size > 0 && (
-                            <button onClick={handleBatchDelete} className="text-[9px] font-black text-rose-500 uppercase hover:text-rose-400 flex items-center gap-1.5 animate-in fade-in slide-in-from-right-1">
-                                <i className="fa-solid fa-trash"></i> Delete Selected ({selectedIds.size})
-                            </button>
-                        )}
+                        <div className="flex gap-3">
+                            {mediaTab === 'upload' && mediaLibrary.length > 0 && (
+                                <button onClick={() => alert("Packaging all assets for download...")} className="text-[9px] font-black text-emerald-400 uppercase hover:text-emerald-300 flex items-center gap-1.5 transition-colors">
+                                    <i className="fa-solid fa-cloud-arrow-down"></i> Export Archive
+                                </button>
+                            )}
+                            {mediaTab === 'upload' && selectedIds.size > 0 && (
+                                <button onClick={handleBatchDelete} className="text-[9px] font-black text-rose-500 uppercase hover:text-rose-400 flex items-center gap-1.5 animate-in fade-in slide-in-from-right-1">
+                                    <i className="fa-solid fa-trash"></i> Delete Selected ({selectedIds.size})
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {mediaTab === 'upload' ? (
@@ -424,13 +422,23 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                                             )}
                                         </div>
 
-                                        {/* Multi-Select for Deletion */}
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); toggleBatchSelect(item.id); }}
-                                            className={`absolute bottom-1 left-1 w-5 h-5 rounded-md flex items-center justify-center transition-all ${selectedIds.has(item.id) ? 'bg-rose-500 text-white' : 'bg-black/60 text-white/50 opacity-0 group-hover:opacity-100 border border-white/20'}`}
-                                        >
-                                            {selectedIds.has(item.id) ? <i className="fa-solid fa-check text-[10px]"></i> : <i className="fa-regular fa-square text-[10px]"></i>}
-                                        </button>
+                                        {/* Actions Layer */}
+                                        <div className="absolute bottom-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); toggleBatchSelect(item.id); }}
+                                                className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${selectedIds.has(item.id) ? 'bg-rose-500 text-white' : 'bg-black/60 text-white/50 border border-white/20'}`}
+                                            >
+                                                {selectedIds.has(item.id) ? <i className="fa-solid fa-check text-[10px]"></i> : <i className="fa-regular fa-square text-[10px]"></i>}
+                                            </button>
+                                            <a 
+                                                href={item.url}
+                                                download={item.name}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-5 h-5 bg-emerald-600 text-white rounded-md flex items-center justify-center shadow-lg hover:bg-emerald-500"
+                                            >
+                                                <i className="fa-solid fa-download text-[9px]"></i>
+                                            </a>
+                                        </div>
                                         
                                         <div className="absolute top-1 left-1 pointer-events-none">
                                             <span className="text-[7px] font-black text-white/40 bg-black/40 px-1 rounded uppercase">{item.type}</span>
