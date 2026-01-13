@@ -22,16 +22,16 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
 
   const paymentMethods = [
     { id: 'paypal', name: 'PayPal', icon: 'fa-brands fa-paypal', color: 'bg-[#003087] text-white' },
-    { id: 'revolut', name: 'Revolut', icon: 'fa-solid fa-r', color: 'bg-white text-black' },
-    { id: 'stripe', name: 'Visa/Master', icon: 'fa-brands fa-stripe', color: 'bg-[#635BFF] text-white' },
-    { id: 'apple', name: 'Apple Pay', icon: 'fa-brands fa-apple', color: 'bg-black text-white' },
-    { id: 'google', name: 'Google Pay', icon: 'fa-brands fa-google-pay', color: 'bg-slate-100 text-slate-800' },
+    { id: 'stripe', name: 'Visa / Master', icon: 'fa-brands fa-stripe', color: 'bg-[#635BFF] text-white' },
     { id: 'skrill', name: 'Skrill', icon: 'fa-solid fa-wallet', color: 'bg-[#802444] text-white' },
-    { id: 'neteller', name: 'Neteller', icon: 'fa-solid fa-money-bill-1-wave', color: 'bg-[#8BB22B] text-white' },
+    { id: 'revolut', name: 'Revolut', icon: 'fa-solid fa-r', color: 'bg-black text-white' },
     { id: 'payoneer', name: 'Payoneer', icon: 'fa-solid fa-p', color: 'bg-[#ff4800] text-white' },
     { id: 'wise', name: 'Wise', icon: 'fa-solid fa-w', color: 'bg-[#00b9ff] text-white' },
+    { id: 'neteller', name: 'Neteller', icon: 'fa-solid fa-money-bill-1-wave', color: 'bg-[#8BB22B] text-white' },
     { id: 'binance', name: 'Binance Pay', icon: 'fa-brands fa-bitcoin', color: 'bg-[#F0B90B] text-black' },
     { id: 'perfect', name: 'Perfect Money', icon: 'fa-solid fa-money-bill-transfer', color: 'bg-[#ee1c25] text-white' },
+    { id: 'apple', name: 'Apple Pay', icon: 'fa-brands fa-apple', color: 'bg-black text-white' },
+    { id: 'google', name: 'Google Pay', icon: 'fa-brands fa-google-pay', color: 'bg-white text-black' },
     { id: 'bkash', name: 'bKash Mobile', icon: 'fa-solid fa-mobile-screen', color: 'bg-[#E2136E] text-white' },
   ];
 
@@ -39,20 +39,20 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-4xl font-display font-black text-white uppercase tracking-tighter">Wallet Node</h2>
+          <h2 className="text-4xl font-display font-black text-white uppercase tracking-tighter">Wallet Hub</h2>
           <p className="text-slate-400 font-medium">Provision fuel for your marketing automation engine.</p>
         </div>
-        <div className="bg-indigo-600/10 border border-indigo-500/20 px-8 py-6 rounded-[2rem] text-center shadow-2xl relative overflow-hidden group">
+        <div className="bg-indigo-600/10 border border-indigo-500/20 px-10 py-8 rounded-[2.5rem] text-center shadow-2xl relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600/5 to-transparent"></div>
           <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1 relative z-10">Available Liquidity</p>
-          <p className="text-4xl font-display font-black glowing-text relative z-10">{formatPrice(balanceUSD)}</p>
+          <p className="text-5xl font-display font-black glowing-text relative z-10">{formatPrice(balanceUSD)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-indigo-500/20">
-            <h3 className="text-xl font-display font-black mb-8 text-white uppercase tracking-tighter">Gateway Selection</h3>
+            <h3 className="text-xl font-display font-black mb-8 text-white uppercase tracking-tighter">Sync Protocols</h3>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
               {paymentMethods.map(m => (
@@ -71,27 +71,27 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
               ))}
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">Deposit Amount ({currency})</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">Quantum Amount ({currency})</label>
                 <div className="relative">
-                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-indigo-500">{currData.symbol}</span>
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-black text-indigo-500">{currData.symbol}</span>
                   <input 
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-3xl pl-12 pr-8 py-5 text-3xl font-display font-black focus:ring-2 focus:ring-indigo-500 text-white shadow-inner glowing-text"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-3xl pl-14 pr-8 py-6 text-4xl font-display font-black focus:ring-1 focus:ring-indigo-500 text-white shadow-inner glowing-text"
                     placeholder="0.00"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {[10, 50, 100, 500].map(val => (
+              <div className="flex flex-wrap gap-3">
+                {[10, 50, 100, 500, 1000].map(val => (
                   <button 
                     key={val}
                     onClick={() => setAmount(val)}
-                    className="px-6 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all"
+                    className="px-8 py-3 bg-slate-900 hover:bg-indigo-600 hover:text-white border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all shadow-lg"
                   >
                     +{currData.symbol}{val}
                   </button>
@@ -105,7 +105,7 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                   className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-display font-black text-xl hover:bg-indigo-500 shadow-[0_20px_50px_rgba(79,70,229,0.3)] flex items-center justify-center gap-4 transition-all disabled:opacity-50 btn-3d"
                 >
                   {isProcessing ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-shield-check"></i>}
-                  {isProcessing ? 'Verifying Node...' : `Authorize Provision`}
+                  {isProcessing ? 'Verifying Sync...' : `Authorize Provisioning`}
                 </button>
               </div>
             </div>
@@ -114,7 +114,7 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
 
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-panel p-8 rounded-[3rem] border-slate-700/50 flex flex-col h-full shadow-xl">
-            <h3 className="text-lg font-display font-black mb-8 text-white uppercase tracking-tighter">Sync Log</h3>
+            <h3 className="text-lg font-display font-black mb-8 text-white uppercase tracking-tighter">Sync Journal</h3>
             <div className="space-y-4 overflow-y-auto no-scrollbar">
               {[
                 { id: 'TX-9902', method: 'Binance', amount: 150, date: 'Live', status: 'Completed' },
@@ -125,7 +125,7 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                 <div key={tx.id} className="flex items-center justify-between p-5 bg-slate-950/40 rounded-2xl border border-white/5 group hover:bg-slate-900/60 transition-all">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-xs text-slate-300 shadow-inner">
-                      <i className="fa-solid fa-file-invoice-dollar"></i>
+                      <i className="fa-solid fa-bolt"></i>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-white uppercase tracking-tight">{tx.method}</p>
@@ -139,6 +139,9 @@ const AddFund: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                 </div>
               ))}
             </div>
+            <button className="w-full mt-auto py-4 bg-slate-900 border border-slate-800 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">
+                <i className="fa-solid fa-file-download mr-2"></i> Download Full Ledger
+            </button>
           </div>
         </div>
       </div>

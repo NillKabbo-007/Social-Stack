@@ -13,15 +13,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [workspace, setWorkspace] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
-  // Default set to en-US per user request
   const [selectedLang, setSelectedLang] = useState('en-US');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate auth delay
     setTimeout(() => {
       onLogin({ 
           email, 
@@ -32,214 +30,71 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
     }, 1500);
   };
 
-  const handleDirectLogin = (provider: string) => {
-    setLoading(true);
-    setTimeout(() => {
-      onLogin({ email: `${provider.toLowerCase()}.user@example.com`, name: `${provider} User`, language: selectedLang });
-      setLoading(false);
-    }, 1000);
-  };
-
-  const currentLangFlag = GLOBAL_LANGUAGES.find(l => l.code === selectedLang)?.flag || '🇺🇸';
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Ambience handled by global CSS */}
-
-      <div className="max-w-5xl w-full relative z-10 flex flex-col md:flex-row gap-8 items-stretch perspective-1000">
-        
-        {onBack && (
-            <button 
-                onClick={onBack}
-                className="absolute -top-16 left-0 flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest glass-panel px-4 py-2 rounded-full"
-            >
-                <i className="fa-solid fa-arrow-left"></i> Return Home
-            </button>
-        )}
-
-        {/* LEFT: Auth Card */}
-        <div className="flex-1 glass-panel p-1 rounded-[2.5rem] border border-slate-700/50 shadow-2xl transition-transform duration-500">
-          <div className="bg-[#0f172a]/95 backdrop-blur-xl rounded-[2.3rem] p-8 md:p-10 border-b-[6px] border-r-[6px] border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.5)] h-full flex flex-col">
-            
-            {/* Header */}
-            <div className="text-center mb-6 relative">
-              <div className="absolute top-0 right-0">
-                <div className="relative group">
-                    <button className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-1.5 transition-all">
-                        <span className="text-lg">{currentLangFlag}</span>
-                        <i className="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                    </button>
-                    <div className="absolute right-0 top-full mt-2 w-40 bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden hidden group-hover:block z-50">
-                        {GLOBAL_LANGUAGES.filter(l => ['en-US', 'bn-BD', 'hi-IN', 'es-ES'].includes(l.code)).map(lang => (
-                            <button 
-                                key={lang.code}
-                                onClick={() => setSelectedLang(lang.code)}
-                                className="w-full text-left px-4 py-2 text-xs font-bold text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2"
-                            >
-                                <span>{lang.flag}</span> {lang.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center mb-4 icon-4d">
-                <Logo className="w-16 h-16" showText={false} />
-              </div>
-              <h2 className="text-2xl font-black text-white tracking-tight uppercase">
-                {isLogin ? 'Welcome Back' : 'Join the Stack'}
-              </h2>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                {isLogin ? 'Access Command Node' : 'Initialize New Workspace'}
-              </p>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#020617] relative overflow-hidden">
+      {/* Sci-Tech Grid Overlay */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none"></div>
+      
+      <div className="max-w-lg w-full relative z-10">
+        <div className="glass-panel p-10 rounded-[3rem] border-white/10 shadow-2xl relative overflow-hidden group">
+            <div className="text-center mb-10">
+                <Logo className="w-16 h-16 mx-auto mb-6" showText={false} />
+                <h2 className="text-3xl font-display font-black text-white uppercase tracking-tight">
+                    {isLogin ? 'Initialize Core' : 'Deploy Identity'}
+                </h2>
+                <p className="text-[10px] text-slate-500 font-tech font-bold uppercase tracking-[0.3em] mt-2">Omni-Channel Terminal v3.4.0</p>
             </div>
 
-            {/* Auth Form */}
-            <div className="space-y-5 flex-1">
-              
-              {/* Direct Logins */}
-              <div className="grid grid-cols-4 gap-3">
-                  {[
-                      { id: 'Google', icon: 'fa-google', color: 'text-rose-500', bg: 'bg-white hover:bg-slate-200' },
-                      { id: 'Apple', icon: 'fa-apple', color: 'text-white', bg: 'bg-black hover:bg-slate-800' },
-                      { id: 'Github', icon: 'fa-github', color: 'text-white', bg: 'bg-[#24292e] hover:bg-black' },
-                      { id: 'Microsoft', icon: 'fa-microsoft', color: 'text-[#00a4ef]', bg: 'bg-white hover:bg-slate-200' }
-                  ].map(p => (
-                      <button 
-                        key={p.id}
-                        onClick={() => handleDirectLogin(p.id)}
-                        disabled={loading}
-                        className={`h-12 rounded-xl flex items-center justify-center text-xl transition-all shadow-md icon-4d ${p.bg} ${p.color}`}
-                        title={`Login with ${p.id}`}
-                      >
-                          <i className={`fa-brands ${p.icon}`}></i>
-                      </button>
-                  ))}
-              </div>
-
-              <div className="flex items-center gap-4 py-1">
-                <div className="flex-1 h-px bg-slate-700/50"></div>
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Or Use Email</span>
-                <div className="flex-1 h-px bg-slate-700/50"></div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 {!isLogin && (
-                    <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-black text-slate-500 uppercase ml-1">Full Name</label>
-                            <input 
-                                type="text" 
-                                required={!isLogin}
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500"
-                                placeholder="John Doe"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-black text-slate-500 uppercase ml-1">Workspace</label>
-                            <input 
-                                type="text" 
-                                value={workspace}
-                                onChange={(e) => setWorkspace(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500"
-                                placeholder="Agency Inc."
-                            />
-                        </div>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-tech text-slate-500 uppercase tracking-widest ml-1">Operator Name</label>
+                        <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:ring-1 focus:ring-indigo-500 shadow-inner font-medium" placeholder="Node Operator 01" />
                     </div>
                 )}
+                
+                <div className="space-y-1">
+                    <label className="text-[10px] font-tech text-slate-500 uppercase tracking-widest ml-1">Identity Key (Email)</label>
+                    <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:ring-1 focus:ring-indigo-500 shadow-inner font-medium" placeholder="node@socialstack.io" />
+                </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-1">Email Node</label>
-                  <div className="relative group">
-                    <i className="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors"></i>
-                    <input 
-                      type="email" 
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white focus:ring-1 focus:ring-indigo-500 focus:bg-slate-900 transition-all shadow-inner font-medium placeholder-slate-600"
-                      placeholder="admin@socialstack.io"
-                    />
-                  </div>
+                    <label className="text-[10px] font-tech text-slate-500 uppercase tracking-widest ml-1">Auth Sequence (Password)</label>
+                    <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:ring-1 focus:ring-indigo-500 shadow-inner font-medium" placeholder="••••••••" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-500 uppercase ml-1">Secure Key</label>
-                  <div className="relative group">
-                    <i className="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors"></i>
-                    <input 
-                      type="password" 
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white focus:ring-1 focus:ring-indigo-500 focus:bg-slate-900 transition-all shadow-inner font-medium placeholder-slate-600"
-                      placeholder="••••••••"
-                    />
-                  </div>
+
+                <div className="flex items-center justify-between px-1">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <div onClick={() => setRememberMe(!rememberMe)} className={`w-10 h-5 rounded-full relative transition-colors ${rememberMe ? 'bg-indigo-600' : 'bg-slate-800'}`}>
+                            <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${rememberMe ? 'translate-x-5' : ''}`}></div>
+                        </div>
+                        <span className="text-[10px] font-tech text-slate-600 uppercase tracking-widest group-hover:text-slate-400">Persistent Sync</span>
+                    </label>
+                    <button type="button" className="text-[10px] font-tech text-indigo-400/80 uppercase tracking-widest hover:text-indigo-400 transition-colors">Emergency Reset</button>
                 </div>
 
                 <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50 btn-3d border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-2 mt-2"
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-display font-black text-[12px] uppercase tracking-[0.2em] shadow-xl transition-all btn-3d"
                 >
-                  {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className={`fa-solid ${isLogin ? 'fa-right-to-bracket' : 'fa-user-plus'}`}></i>}
-                  {isLogin ? 'Authenticate' : 'Deploy Account'}
+                    {loading ? <i className="fa-solid fa-sync fa-spin"></i> : isLogin ? 'Authenticate Terminal' : 'Launch New Node'}
                 </button>
-              </form>
-            </div>
+            </form>
 
-            <div className="text-center mt-6 pt-4 border-t border-slate-800/50">
-              <button 
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-xs text-slate-400 hover:text-white font-bold uppercase tracking-wide transition-colors"
-              >
-                {isLogin ? "New here? Create Workspace" : "Already have access? Login"}
-              </button>
-            </div>
-            
-            <div className="mt-4 flex justify-center gap-4 text-[9px] text-slate-600 font-bold uppercase tracking-widest">
-                <a href="#" className="hover:text-indigo-400">Terms</a>
-                <span className="text-slate-700">•</span>
-                <a href="#" className="hover:text-indigo-400">Privacy</a>
-                <span className="text-slate-700">•</span>
-                <a href="#" className="hover:text-indigo-400">Cookies</a>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT: Info / Testimonial (Desktop) */}
-        <div className="hidden md:flex flex-1 flex-col justify-center space-y-6 animate-in slide-in-from-right-8 duration-700">
-            <div className="glass-panel p-8 rounded-[2rem] border border-slate-700/30 bg-indigo-900/10 backdrop-blur-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-3xl rounded-full"></div>
-                <div className="relative z-10">
-                    <div className="flex items-center gap-1 text-amber-400 mb-4 text-sm">
-                        <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i>
-                    </div>
-                    <p className="text-lg font-medium text-white italic leading-relaxed mb-6">
-                        "Social Stack is the operating system for my agency. The ROI analytics helped us scale 3 clients past $1M ARR last quarter alone."
-                    </p>
-                    <div className="flex items-center gap-4">
-                        <img src="https://ui-avatars.com/api/?name=David+K&background=10b981&color=fff" className="w-12 h-12 rounded-full border-2 border-indigo-500/50" />
-                        <div>
-                            <h4 className="font-bold text-white">David K.</h4>
-                            <p className="text-xs text-slate-400 font-bold uppercase">Growth Lead @ ScaleUp</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="glass-panel p-6 rounded-2xl border border-slate-700/30 flex items-center justify-between">
-                <div className="flex gap-3 items-center">
-                    <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 text-xl"><i className="fa-solid fa-shield-halved"></i></div>
-                    <div>
-                        <h4 className="font-bold text-white text-sm">Enterprise Security</h4>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wide">SOC2 Compliant • AES-256</p>
-                    </div>
-                </div>
+            <div className="mt-8 pt-8 border-t border-white/5 text-center">
+                <button onClick={() => setIsLogin(!isLogin)} className="text-[10px] font-tech text-slate-600 uppercase tracking-widest hover:text-white transition-colors">
+                    {isLogin ? "Generate New Node? Sign Up" : "Existing Identity? Login Direct"}
+                </button>
             </div>
         </div>
+        
+        {onBack && (
+            <button onClick={onBack} className="mt-8 w-full text-[10px] font-tech text-slate-700 uppercase tracking-widest hover:text-slate-400 flex items-center justify-center gap-2 transition-all">
+                <i className="fa-solid fa-arrow-left"></i> Hub Protocol
+            </button>
+        )}
       </div>
     </div>
   );

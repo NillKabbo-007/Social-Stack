@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import SummaryCard from './SummaryCard';
 import { ROI_DATA, PLATFORMS, GLOBAL_CURRENCIES } from '../constants';
 import { executeStrategicCommand, getXFeed } from '../services/geminiService';
 
 const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
-  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#d946ef', '#0ea5e9'];
   const [commandInput, setCommandInput] = useState('');
   const [isExecutingCommand, setIsExecutingCommand] = useState(false);
   const [commandResult, setCommandResult] = useState<any>(null);
@@ -25,7 +24,6 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
     }));
     setChartData(newData);
     
-    // Fetch live market intelligence
     const fetchFeed = async () => {
         const feed = await getXFeed('Digital Marketing Trends');
         setXFeed(feed);
@@ -54,7 +52,7 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                 </div>
                 <div>
                     <h2 className="text-lg font-display font-black text-white leading-tight uppercase tracking-tight">Strategy Node</h2>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">v3.1 Real-time Analysis</p>
+                    <p className="text-[10px] text-slate-500 font-tech uppercase tracking-widest">v3.4 Production</p>
                 </div>
              </div>
              
@@ -63,7 +61,7 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                     <input 
                         value={commandInput}
                         onChange={(e) => setCommandInput(e.target.value)}
-                        placeholder="Analyze conversion velocity on TikTok..."
+                        placeholder="Initialize strategic request..."
                         className="w-full bg-slate-900 border border-white/5 rounded-2xl pl-6 pr-16 py-4 text-xs text-white focus:ring-2 focus:ring-indigo-500 transition-all font-medium placeholder-slate-600 shadow-inner"
                         onKeyDown={(e) => e.key === 'Enter' && handleCommand()}
                     />
@@ -95,31 +93,31 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                 <SummaryCard label="Aggregated ROI" value="4.2x" trend={8.4} icon="fa-solid fa-bolt" color="#10b981" />
                 <div className="glass-panel p-6 rounded-[2rem] flex flex-col justify-between border-rose-500/30 bg-rose-950/10 group cursor-pointer hover:bg-rose-900/20 transition-all h-40">
                     <div className="flex justify-between items-start">
-                        <span className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Active Ops</span>
+                        <span className="text-slate-500 text-[9px] font-tech font-black uppercase tracking-widest">Active Ops</span>
                         <div className="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white text-lg shadow-lg">
                             <i className="fa-solid fa-satellite-dish"></i>
                         </div>
                     </div>
                     <div>
                         <h4 className="text-xl font-display font-black text-white leading-none">Live Studio</h4>
-                        <p className="text-[8px] text-rose-400 font-bold uppercase tracking-widest mt-1">Connect Node</p>
+                        <p className="text-[8px] text-rose-400 font-tech font-bold uppercase tracking-widest mt-1">Connect Node</p>
                     </div>
                 </div>
             </div>
 
-            {/* Performance Visualization */}
-            <div className="glass-panel p-8 rounded-[2.5rem] border-slate-700/50">
+            <div className="glass-panel p-8 rounded-[2.5rem] border-slate-700/50 relative">
                 <div className="flex justify-between items-center mb-8">
                     <h3 className="text-lg font-display font-black text-white uppercase tracking-tighter">Growth Velocity</h3>
                     <div className="flex gap-4">
-                        <span className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"></span> Impression Density
+                        <span className="flex items-center gap-2 text-[10px] font-tech font-bold text-slate-500 uppercase tracking-widest">
+                            <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"></span> Real-time Sync
                         </span>
                     </div>
                 </div>
-                <div className="h-64 w-full">
+                {/* Fixed sizing container for Recharts */}
+                <div className="h-64 w-full min-h-[256px] relative">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData}>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorMain" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/><stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
@@ -134,18 +132,17 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
             </div>
         </div>
 
-        {/* Right Sidebar: Intel Feed */}
         <div className="lg:col-span-4 space-y-6">
             <div className="glass-panel rounded-[2.5rem] border-slate-700/50 flex flex-col h-full overflow-hidden">
                 <div className="p-6 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
-                    <h3 className="text-xs font-display font-black text-white uppercase tracking-widest">Intelligence Pulse</h3>
+                    <h3 className="text-xs font-tech font-black text-white uppercase tracking-widest">Intel Feed</h3>
                     <i className="fa-brands fa-x-twitter text-slate-600"></i>
                 </div>
                 <div className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar">
                     {loadingFeed ? (
                         <div className="flex flex-col items-center justify-center py-20 text-slate-600 space-y-4">
                             <i className="fa-solid fa-satellite fa-spin text-2xl"></i>
-                            <p className="text-[10px] font-black uppercase tracking-widest">Scanning Frequencies...</p>
+                            <p className="text-[10px] font-tech font-black uppercase tracking-widest">Scanning...</p>
                         </div>
                     ) : (
                         xFeed.map((post, i) => (
@@ -159,8 +156,8 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                                         <p className="text-[8px] text-slate-500 uppercase mt-0.5">{post.time}</p>
                                     </div>
                                 </div>
-                                <p className="text-xs text-slate-400 leading-relaxed italic">"{post.content}"</p>
-                                <div className="flex gap-4 text-[9px] font-black text-slate-600 uppercase">
+                                <p className="text-xs text-slate-400 leading-relaxed font-medium italic">"{post.content}"</p>
+                                <div className="flex gap-4 text-[9px] font-tech text-slate-600 uppercase">
                                     <span className="flex items-center gap-1"><i className="fa-solid fa-heart text-rose-500/50"></i> {post.metrics.likes}</span>
                                     <span className="flex items-center gap-1"><i className="fa-solid fa-eye text-indigo-500/50"></i> {post.metrics.views}</span>
                                 </div>

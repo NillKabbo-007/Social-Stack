@@ -4,7 +4,8 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell 
 } from 'recharts';
-import { getXFeed, generateTwitterThread } from '../services/geminiService';
+// Fixed: Removed generateTwitterThread as it is not exported from geminiService
+import { getXFeed } from '../services/geminiService';
 
 const ANALYTICS_DATA = [
   { day: 'Mon', impressions: 4500, engagement: 320, retweets: 45, replies: 28 },
@@ -96,7 +97,7 @@ const TwitterDashboard: React.FC = () => {
 
   return (
       <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 bg-gradient-to-r from-black to-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 bg-gradient-to-r from-black to-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl relative overflow-hidden text-white">
             <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                 <i className="fa-brands fa-x-twitter text-9xl text-white"></i>
             </div>

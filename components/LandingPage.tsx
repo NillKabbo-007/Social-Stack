@@ -6,147 +6,117 @@ interface LandingPageProps {
   onEnter: () => void;
 }
 
-const REVIEWS = [
-    { id: 1, name: 'Sarah J.', role: 'CMO @ TechFlow', text: "The ROI analytics are scary accurate. It predicted our Q4 slump and saved us $50k in ad spend.", avatar: 'https://ui-avatars.com/api/?name=Sarah+J&background=6366f1&color=fff' },
-    { id: 2, name: 'Mike Ross', role: 'Agency Owner', text: "Managing 50+ client accounts used to take a village. Now it takes me and Social Stack.", avatar: 'https://ui-avatars.com/api/?name=Mike+R&background=10b981&color=fff' },
-    { id: 3, name: 'Elena V.', role: 'Influencer', text: "The 4D content visualization helps me plan my feed aesthetic like nothing else. Game changer.", avatar: 'https://ui-avatars.com/api/?name=Elena+V&background=f43f5e&color=fff' }
-];
-
 const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   return (
-    <div className="min-h-screen relative overflow-hidden font-sans text-slate-200 selection:bg-indigo-500/30">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
-        <Logo />
-        <div className="flex gap-4">
-            <button 
-                onClick={onEnter}
-                className="hidden md:block px-6 py-2.5 hover:text-indigo-400 font-bold text-xs uppercase tracking-widest transition-all text-slate-300"
-            >
-                Login
-            </button>
-            <button 
-                onClick={onEnter}
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-xs uppercase tracking-widest transition-all text-white shadow-lg shadow-indigo-600/30 btn-3d"
-            >
-                Register Free
-            </button>
+    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-indigo-500/30">
+      {/* Dynamic Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-8 py-6 backdrop-blur-md bg-black/10 border-b border-white/5">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <Logo />
+            <div className="flex items-center gap-8">
+                <div className="hidden lg:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
+                    <a href="#" className="hover:text-white transition-colors">Infrastructure</a>
+                    <a href="#" className="hover:text-white transition-colors">AI Engine</a>
+                    <a href="#" className="hover:text-white transition-colors">Pricing</a>
+                </div>
+                <button onClick={onEnter} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-display font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 btn-3d">
+                    Enter Terminal
+                </button>
+            </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4 max-w-5xl mx-auto pt-20">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] font-black uppercase tracking-widest mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 hover:scale-105 transition-transform cursor-pointer">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-            v2.4.0 Live System
-        </div>
+      <section className="relative pt-40 pb-20 px-8 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-full bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none"></div>
         
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-8 leading-[0.9] drop-shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            The Operating System <br />
-            <span className="cinematic-shine">For Digital Growth</span>
-        </h1>
-        
-        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
-            Unify your social graph. Automate your outreach. <br className="hidden md:block" />
-            Analyze ROI with military-grade precision across every node.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-300">
-            <button 
-                onClick={onEnter}
-                className="px-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_40px_rgba(79,70,229,0.4)] hover:shadow-[0_0_60px_rgba(79,70,229,0.6)] hover:scale-105 active:scale-95 btn-3d flex items-center justify-center gap-3"
-            >
-                <i className="fa-solid fa-rocket"></i>
-                Initialize Console
-            </button>
-            <button className="px-10 py-5 bg-slate-800/50 hover:bg-slate-800 text-white border border-slate-700 rounded-2xl font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 btn-3d flex items-center justify-center gap-3">
-                <i className="fa-brands fa-github"></i>
-                View Source
-            </button>
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 animate-in fade-in slide-in-from-bottom-4">
+                <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">v3.4 Production Ready</span>
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl font-display font-black tracking-tighter leading-[0.9] mb-8">
+                The Stack That <br />
+                <span className="text-indigo-400">Scales You.</span>
+            </h1>
+            
+            <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
+                Connect your social nodes, automate high-intent outreach, and analyze ROI with proprietary Gemini 3 intelligence.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button onClick={onEnter} className="w-full sm:w-auto px-12 py-5 bg-white text-black rounded-[2rem] font-display font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl">
+                    Deploy Your App
+                </button>
+                <button className="w-full sm:w-auto px-12 py-5 bg-slate-900 border border-slate-800 rounded-[2rem] font-display font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
+                    <i className="fa-brands fa-github text-lg"></i>
+                    Documentation
+                </button>
+            </div>
         </div>
-
-        {/* Stats / Social Proof */}
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16 border-t border-white/5 pt-12 w-full animate-in fade-in duration-1000 delay-500">
-            {[
-                { label: 'Active Nodes', val: '15k+' },
-                { label: 'Ad Spend Managed', val: '$42M' },
-                { label: 'API Requests', val: '1.2B' },
-                { label: 'Uptime', val: '99.9%' }
-            ].map((stat, i) => (
-                <div key={i}>
-                    <p className="text-2xl md:text-3xl font-black text-white">{stat.val}</p>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
-                </div>
-            ))}
-        </div>
-      </main>
-
-      {/* Feature Grid Preview */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20">
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-                { title: 'Multi-Channel Sync', icon: 'fa-share-nodes', desc: 'Control Meta, TikTok, and X from a single glass pane.', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                { title: 'Gemini Neural Core', icon: 'fa-brain-circuit', desc: 'AI that predicts viral trends before they happen.', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-                { title: 'Secure Infrastructure', icon: 'fa-shield-halved', desc: 'AES-256 encrypted vaults for all your API keys.', color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
-            ].map((feature, i) => (
-                <div key={i} className="glass-panel p-8 rounded-3xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all group icon-4d hover:-translate-y-2">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 ${feature.color} ${feature.bg} shadow-inner`}>
-                        <i className={`fa-solid ${feature.icon}`}></i>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                    <p className="text-sm text-slate-400 font-medium leading-relaxed">{feature.desc}</p>
-                </div>
-            ))}
-         </div>
       </section>
 
-      {/* Customer Reviews - Wall of Love */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-slate-800">
-          <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-2">Wall of <span className="text-rose-500">Love</span></h2>
-              <p className="text-slate-400">Trusted by modern growth teams worldwide.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {REVIEWS.map(review => (
-                  <div key={review.id} className="glass-panel p-6 rounded-2xl border border-slate-700/50 relative">
-                      <div className="flex items-center gap-4 mb-4">
-                          <img src={review.avatar} alt={review.name} className="w-10 h-10 rounded-full border border-slate-600" />
-                          <div>
-                              <h4 className="font-bold text-white text-sm">{review.name}</h4>
-                              <p className="text-[10px] text-slate-500 uppercase font-bold">{review.role}</p>
-                          </div>
-                      </div>
-                      <p className="text-sm text-slate-300 italic leading-relaxed">"{review.text}"</p>
-                      <div className="flex text-amber-400 gap-1 text-xs mt-4">
-                          <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i>
-                      </div>
-                  </div>
-              ))}
-          </div>
+      {/* Bento Grid Features */}
+      <section className="max-w-7xl mx-auto px-8 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
+            <div className="md:col-span-8 glass-panel p-10 rounded-[3rem] bento-card relative overflow-hidden flex flex-col justify-between group">
+                <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform">
+                    <i className="fa-solid fa-chart-line text-9xl"></i>
+                </div>
+                <div>
+                    <h3 className="text-3xl font-display font-black uppercase tracking-tight mb-4">Deep Insight Engine</h3>
+                    <p className="text-slate-400 max-w-md">Real-time radar charts across Meta, TikTok, and Google. Stop guessing your ROI and start stacking your data.</p>
+                </div>
+                <div className="mt-12 flex gap-4">
+                    <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 text-indigo-400 font-black text-xs uppercase tracking-widest">Analytics v2.0</div>
+                    <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400 font-black text-xs uppercase tracking-widest">Live Sync</div>
+                </div>
+            </div>
+            
+            <div className="md:col-span-4 glass-panel p-10 rounded-[3rem] bento-card flex flex-col justify-center items-center text-center space-y-6">
+                <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center text-3xl shadow-2xl shadow-indigo-600/40">
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h3 className="text-2xl font-display font-black uppercase tracking-tight">AI Advisor</h3>
+                <p className="text-slate-400 text-sm">Actionable strategy nodes generated by Gemini 3 Pro.</p>
+            </div>
+
+            <div className="md:col-span-4 glass-panel p-10 rounded-[3rem] bento-card flex flex-col justify-between">
+                <i className="fa-solid fa-shield-halved text-4xl text-indigo-500"></i>
+                <div>
+                    <h4 className="text-xl font-display font-black uppercase mb-2">Vault Security</h4>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">AES-256 Protocol</p>
+                </div>
+            </div>
+
+            <div className="md:col-span-8 glass-panel p-10 rounded-[3rem] bento-card flex items-center justify-between group overflow-hidden">
+                <div className="space-y-4">
+                    <h3 className="text-3xl font-display font-black uppercase tracking-tight">Infrastructure Hub</h3>
+                    <p className="text-slate-400 max-w-sm">Premium VPS and Proxy nodes with worldwide locations at your fingertips.</p>
+                </div>
+                <div className="flex gap-4 relative">
+                    <div className="w-16 h-16 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center text-2xl text-white group-hover:rotate-12 transition-transform"><i className="fa-brands fa-aws"></i></div>
+                    <div className="w-16 h-16 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center text-2xl text-indigo-400 group-hover:-rotate-12 transition-transform shadow-2xl"><i className="fa-brands fa-google"></i></div>
+                </div>
+            </div>
+        </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-800 bg-black/40 backdrop-blur-xl mt-12">
-          <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
-              <Logo showText={true} />
-              
-              <div className="flex gap-6">
-                  {['fa-twitter', 'fa-linkedin', 'fa-instagram', 'fa-github', 'fa-discord'].map((icon, i) => (
-                      <a key={i} href="#" className="text-slate-400 hover:text-white transition-all hover:scale-125 icon-4d p-2">
-                          <i className={`fa-brands ${icon} text-xl`}></i>
-                      </a>
-                  ))}
-              </div>
-
-              <div className="flex gap-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  <a href="/privacy.html" className="hover:text-indigo-400">Privacy</a>
-                  <a href="/terms.html" className="hover:text-indigo-400">Terms</a>
-                  <a href="/cookies.html" className="hover:text-indigo-400">Cookies</a>
-              </div>
-          </div>
-          <div className="text-center pb-6 opacity-30 text-[9px] font-mono uppercase tracking-widest">
-              System Status: Operational • Region: Global-1 • © 2026 Social Stack
-          </div>
+      {/* Footer Branding */}
+      <footer className="border-t border-white/5 py-12 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <Logo showText={true} />
+            <div className="flex gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+                <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                <a href="#" className="hover:text-white transition-colors">Compliance</a>
+                <a href="#" className="hover:text-white transition-colors">Security</a>
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-700">© 2026 Social Stack Global Core</p>
+        </div>
       </footer>
     </div>
   );
