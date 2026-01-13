@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PLATFORMS } from '../constants';
 import { generateViralSuggestions, generateSocialPost, generateAIImage } from '../services/geminiService';
 import { MediaItem } from '../types';
@@ -113,6 +113,39 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [artStyle, setArtStyle] = useState('Photorealistic');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
+  // Sorting & Multi-select State
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'type'>('newest');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+
+  const sortedMedia = useMemo(() => {
+    const list = [...mediaLibrary];
+    if (sortBy === 'newest') {
+        return list.sort((a, b) => b.id.localeCompare(a.id));
+    } else if (sortBy === 'oldest') {
+        return list.sort((a, b) => a.id.localeCompare(b.id));
+    } else if (sortBy === 'type') {
+        return list.sort((a, b) => a.type.localeCompare(b.type));
+    }
+    return list;
+  }, [mediaLibrary, sortBy]);
+
+  const handleToggleSelect = (id: string) => {
+    if (selectedIds.includes(id)) {
+        setSelectedIds(prev => prev.filter(x => x !== id));
+    } else {
+        setSelectedIds(prev => [...prev, id]);
+    }
+  };
+
+  const handleBatchDelete = () => {
+    if (confirm(`Authorize destructive purge of ${selectedIds.length} assets?`)) {
+        selectedIds.forEach(id => onDeleteMedia(id));
+        setSelectedIds([]);
+        setIsMultiSelectMode(false);
+    }
+  };
+
   const handleGeneratePost = async () => {
     if (!prompt) return;
     setIsGeneratingPost(true);
@@ -207,16 +240,68 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto no-scrollbar">
-                        {mediaLibrary.map(item => (
-                            <div 
-                                key={item.id} 
-                                onClick={() => setSelectedMedia(selectedMedia?.id === item.id ? null : item)}
-                                className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${selectedMedia?.id === item.id ? 'border-indigo-500 scale-95 shadow-lg' : 'border-slate-800 hover:border-slate-600'}`}
-                            >
-                                <img src={item.url} className="w-full h-full object-cover" />
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                            <div className="flex gap-2">
+                                <select 
+                                    value={sortBy} 
+                                    onChange={(e) => setSortBy(e.target.value as any)}
+                                    className="bg-slate-900 border border-white/5 text-[9px] font-tech font-black text-slate-400 uppercase rounded-lg px-2 py-1 outline-none"
+                                >
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="type">By Type</option>
+                                </select>
                             </div>
-                        ))}
+                            <button 
+                                onClick={() => { setIsMultiSelectMode(!isMultiSelectMode); setSelectedIds([]); }}
+                                className={`text-[9px] font-tech font-black uppercase transition-all ${isMultiSelectMode ? 'text-indigo-400' : 'text-slate-600 hover:text-slate-400'}`}
+                            >
+                                {isMultiSelectMode ? 'Cancel Selection' : 'Multi-Select'}
+                            </button>
+                        </div>
+
+                        {selectedIds.length > 0 && (
+                            <div className="flex items-center justify-between bg-indigo-600/10 border border-indigo-500/20 p-3 rounded-xl animate-in slide-in-from-top-2 duration-300">
+                                <span className="text-[10px] font-tech font-black text-indigo-400 uppercase">{selectedIds.length} Assets Targeted</span>
+                                <button 
+                                    onClick={handleBatchDelete}
+                                    className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[9px] font-black uppercase transition-all"
+                                >
+                                    Batch Purge
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto no-scrollbar">
+                            {sortedMedia.map(item => (
+                                <div 
+                                    key={item.id} 
+                                    onClick={() => {
+                                        if (isMultiSelectMode) {
+                                            handleToggleSelect(item.id);
+                                        } else {
+                                            setSelectedMedia(selectedMedia?.id === item.id ? null : item);
+                                        }
+                                    }}
+                                    className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all relative group/item ${
+                                        isMultiSelectMode 
+                                            ? (selectedIds.includes(item.id) ? 'border-indigo-500 scale-95 shadow-xl ring-2 ring-indigo-500/30' : 'border-slate-800')
+                                            : (selectedMedia?.id === item.id ? 'border-indigo-500 scale-95 shadow-lg' : 'border-slate-800 hover:border-slate-600')
+                                    }`}
+                                >
+                                    <img src={item.url} className="w-full h-full object-cover" />
+                                    {isMultiSelectMode && (
+                                        <div className={`absolute top-1 right-1 w-4 h-4 rounded-full border border-white/20 flex items-center justify-center transition-all ${selectedIds.includes(item.id) ? 'bg-indigo-500 border-indigo-400' : 'bg-black/60'}`}>
+                                            {selectedIds.includes(item.id) && <i className="fa-solid fa-check text-[8px] text-white"></i>}
+                                        </div>
+                                    )}
+                                    <div className="absolute bottom-1 left-1 px-1 py-0.5 bg-black/60 backdrop-blur rounded text-[6px] font-tech text-slate-400 uppercase pointer-events-none opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                        {item.type}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
