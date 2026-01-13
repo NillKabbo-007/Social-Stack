@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PLATFORMS } from '../constants';
 import { generateViralSuggestions, generateSocialPost, generateAIImage, getImportableContent } from '../services/geminiService';
 import { MediaItem } from '../types';
@@ -396,10 +396,13 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [imgSeed, setImgSeed] = useState<number | ''>('');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
-  // Import State
+  // Import State & Refining Filters
   const [showImportModal, setShowImportModal] = useState(false);
   const [importableItems, setImportableItems] = useState<any[]>([]);
   const [isLoadingImports, setIsLoadingImports] = useState(false);
+  const [importSearch, setImportSearch] = useState('');
+  const [importFilterPlatform, setImportFilterPlatform] = useState('All');
+  const [importSort, setImportSort] = useState<'newest' | 'oldest' | 'engagement'>('newest');
 
   // Queue State
   const [queue, setQueue] = useState<QueueItem[]>([
@@ -598,6 +601,32 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
           return item;
       }));
   };
+
+  // Filtered & Sorted Import Content
+  const filteredImportItems = useMemo(() => {
+      let result = [...importableItems];
+      
+      if (importSearch) {
+          result = result.filter(item => 
+              item.content.toLowerCase().includes(importSearch.toLowerCase()) ||
+              item.platform.toLowerCase().includes(importSearch.toLowerCase())
+          );
+      }
+      
+      if (importFilterPlatform !== 'All') {
+          result = result.filter(item => item.platform.toLowerCase() === importFilterPlatform.toLowerCase());
+      }
+      
+      if (importSort === 'newest') {
+          // Assuming date is something like "2 days ago" etc from mock, in real apps we'd parse ISO
+          // For mock, we'll just keep it as is since newest is usually first
+      } else if (importSort === 'engagement') {
+          const engRank: Record<string, number> = { 'Very High': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+          result.sort((a, b) => (engRank[b.engagement] || 0) - (engRank[a.engagement] || 0));
+      }
+      
+      return result;
+  }, [importableItems, importSearch, importFilterPlatform, importSort]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -1084,40 +1113,131 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
 
       {showImportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-[#0f172a] border border-slate-700 w-full max-w-2xl rounded-[2rem] p-8 shadow-2xl relative flex flex-col max-h-[80vh]">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">Import Content History</h3>
-                    <button onClick={() => setShowImportModal(false)} className="text-slate-500 hover:text-white"><i className="fa-solid fa-xmark text-xl"></i></button>
+            <div className="bg-[#0f172a] border border-slate-700 w-full max-w-3xl rounded-[2.5rem] p-0 shadow-2xl relative flex flex-col max-h-[85vh] overflow-hidden group/modal">
+                <div className="absolute top-0 right-0 p-24 opacity-5 pointer-events-none">
+                    <i className="fa-solid fa-file-import text-9xl text-white"></i>
+                </div>
+
+                {/* Modal Header */}
+                <div className="p-8 pb-4 flex justify-between items-center relative z-10">
+                    <div>
+                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                            <i className="fa-solid fa-history text-indigo-500 icon-4d"></i>
+                            Import History
+                        </h3>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Select previous nodes for redeployment</p>
+                    </div>
+                    <button onClick={() => setShowImportModal(false)} className="w-10 h-10 rounded-full bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-500 transition-all flex items-center justify-center">
+                        <i className="fa-solid fa-xmark text-lg"></i>
+                    </button>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto pr-2 space-y-4 no-scrollbar">
-                    {isLoadingImports ? (
-                        <div className="text-center py-12 text-slate-500">
-                            <i className="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
-                            <p className="text-xs font-bold uppercase">Fetching Platform Data...</p>
+                {/* Modal Filters & Search */}
+                <div className="px-8 pb-6 pt-2 space-y-4 relative z-10">
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="relative flex-1 w-full">
+                            <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search past campaigns, copy or tags..." 
+                                value={importSearch}
+                                onChange={(e) => setImportSearch(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-2xl text-xs text-white focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner"
+                            />
                         </div>
-                    ) : (
-                        importableItems.map(item => (
-                            <div key={item.id} onClick={() => handleImportSelect(item)} className="p-4 bg-slate-800/50 border border-slate-700 rounded-xl hover:border-indigo-500 cursor-pointer group transition-all flex gap-4">
-                                <div className="w-16 h-16 bg-slate-900 rounded-lg flex-shrink-0 overflow-hidden border border-slate-700">
+                        <div className="flex gap-2 w-full md:w-auto overflow-x-auto no-scrollbar pb-1">
+                            {['All', 'Twitter', 'LinkedIn', 'Instagram', 'Facebook', 'TikTok'].map(plat => (
+                                <button
+                                    key={plat}
+                                    onClick={() => setImportFilterPlatform(plat)}
+                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap ${
+                                        importFilterPlatform === plat 
+                                        ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg' 
+                                        : 'bg-slate-800/50 border-slate-700 text-slate-500 hover:text-white'
+                                    }`}
+                                >
+                                    {plat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-900/30 p-2 rounded-xl border border-slate-800/50">
+                        <div className="flex gap-4">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-slate-600 uppercase">Sort by:</span>
+                                <select 
+                                    value={importSort}
+                                    onChange={(e) => setImportSort(e.target.value as any)}
+                                    className="bg-transparent text-[10px] font-black text-indigo-400 uppercase tracking-widest outline-none cursor-pointer"
+                                >
+                                    <option value="newest">Recent First</option>
+                                    <option value="engagement">Engagement Rank</option>
+                                    <option value="oldest">Historical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">{filteredImportItems.length} Result{filteredImportItems.length !== 1 && 's'}</span>
+                    </div>
+                </div>
+
+                {/* Modal Content List */}
+                <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-4 no-scrollbar relative z-10">
+                    {isLoadingImports ? (
+                        <div className="flex flex-col items-center justify-center py-24 text-slate-500 gap-4">
+                            <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Accessing Vault Nodes...</p>
+                        </div>
+                    ) : filteredImportItems.length > 0 ? (
+                        filteredImportItems.map(item => (
+                            <div 
+                                key={item.id} 
+                                onClick={() => handleImportSelect(item)} 
+                                className="p-5 bg-slate-800/30 border border-slate-700/50 rounded-[1.5rem] hover:border-indigo-500/50 hover:bg-slate-800/80 cursor-pointer group transition-all flex gap-5 items-start relative overflow-hidden"
+                            >
+                                {/* Platform Indicator Badge */}
+                                <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-indigo-500/5 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+                                
+                                <div className="w-20 h-20 bg-slate-900 rounded-2xl flex-shrink-0 overflow-hidden border border-slate-800 group-hover:scale-105 transition-transform duration-300 shadow-xl relative">
                                     {item.media ? (
                                         <img src={item.media} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-600"><i className="fa-solid fa-align-left"></i></div>
+                                        <div className="w-full h-full flex items-center justify-center text-slate-700"><i className="fa-solid fa-align-left text-2xl"></i></div>
                                     )}
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between mb-1">
-                                        <span className="text-[10px] font-bold uppercase text-slate-400">{item.platform} • {item.date}</span>
-                                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 rounded-full">{item.engagement} Engagement</span>
+                                    <div className="absolute bottom-1 right-1">
+                                        <i className={`fa-brands fa-${item.platform.toLowerCase()} text-[10px] text-white p-1 rounded bg-black/60`}></i>
                                     </div>
-                                    <p className="text-sm text-white line-clamp-2">{item.content}</p>
                                 </div>
-                                <div className="flex items-center">
-                                    <i className="fa-solid fa-arrow-right text-slate-600 group-hover:text-indigo-400 -translate-x-2 group-hover:translate-x-0 opacity-0 group-hover:opacity-100 transition-all"></i>
+                                <div className="flex-1 min-w-0 py-1">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">{item.platform}</span>
+                                            <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase">{item.date}</span>
+                                        </div>
+                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                                            item.engagement === 'Very High' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                                            item.engagement === 'High' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                                            'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                                        }`}>
+                                            {item.engagement} ROI
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-slate-200 font-medium line-clamp-2 leading-relaxed whitespace-pre-wrap">{item.content}</p>
+                                    
+                                    {/* Action Reveal */}
+                                    <div className="mt-3 flex items-center gap-1 text-[9px] font-black text-indigo-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span>Deploy to workspace</span>
+                                        <i className="fa-solid fa-arrow-right-long animate-pulse"></i>
+                                    </div>
                                 </div>
                             </div>
                         ))
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-600 gap-4 border-2 border-dashed border-slate-800 rounded-[2rem]">
+                            <i className="fa-solid fa-magnifying-glass-chart text-4xl opacity-20"></i>
+                            <p className="text-xs font-black uppercase tracking-widest">No matching history nodes found</p>
+                            <button onClick={() => {setImportSearch(''); setImportFilterPlatform('All');}} className="text-[10px] font-bold text-indigo-500 hover:text-white uppercase transition-colors">Clear All Filters</button>
+                        </div>
                     )}
                 </div>
             </div>

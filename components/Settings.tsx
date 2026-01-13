@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { User, MediaItem } from '../types';
-import { GLOBAL_CURRENCIES, GLOBAL_LANGUAGES } from '../constants';
+import { GLOBAL_CURRENCIES, GLOBAL_LANGUAGES, TRANSLATIONS } from '../constants';
 import FileLibrary from './FileLibrary';
 
 interface SettingsProps {
@@ -102,6 +102,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
     alert("2FA Enabled Successfully!");
   };
 
+  const t = TRANSLATIONS[user.language || 'en-US'] || TRANSLATIONS['en-US'];
   const currentLang = GLOBAL_LANGUAGES.find(l => l.code === (user.language || 'en-US')) || GLOBAL_LANGUAGES[0];
   const filteredLanguages = GLOBAL_LANGUAGES.filter(l => l.name.toLowerCase().includes(languageSearch.toLowerCase()));
 
@@ -154,7 +155,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
             </div>
             <div>
               <h4 className="font-bold text-white text-lg">{user.name}</h4>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{user.role === 'admin' ? 'System Administrator' : 'Growth Professional'}</p>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{user.role === 'admin' ? t.masterAdmin : t.growthSpecialist}</p>
             </div>
             <div className="pt-4 border-t border-slate-700/50">
                <div className="flex justify-between items-center text-xs font-bold">
@@ -237,7 +238,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
                     type="button"
                     onClick={() => {
                         setIsLanguageOpen(!isLanguageOpen);
-                        setLanguageSearch(''); // Reset search on open
+                        setLanguageSearch('');
                     }}
                     className="w-full bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-indigo-500 font-bold text-white shadow-inner transition-all hover:bg-slate-750 flex items-center justify-between"
                   >

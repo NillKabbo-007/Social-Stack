@@ -27,7 +27,7 @@ import CommunicationHub from './components/CommunicationHub';
 import LearnAndEarn from './components/LearnAndEarn';
 import Logo from './components/Logo';
 import { AppRoute, User, MediaItem } from './types';
-import { GLOBAL_CURRENCIES, GLOBAL_LANGUAGES } from './constants';
+import { GLOBAL_CURRENCIES, GLOBAL_LANGUAGES, TRANSLATIONS } from './constants';
 
 const INITIAL_MEDIA: MediaItem[] = [
   { id: '1', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800', name: 'tech-stack.jpg', type: 'image', date: '2026-01-10' },
@@ -62,13 +62,11 @@ const App: React.FC = () => {
       setUser(JSON.parse(savedUser));
       setView('app');
     } else {
-      // Don't default to landing if we just logged out in this session
       if (view !== 'logout') {
           setView('landing');
       }
     }
     
-    // Check local storage for theme preference
     const savedTheme = localStorage.getItem('socialstack_theme');
     if (savedTheme) {
       setDarkMode(savedTheme === 'dark');
@@ -97,8 +95,8 @@ const App: React.FC = () => {
       balance: 245.80,
       currency: 'USD',
       twoFactorEnabled: false,
-      language: 'en-US', // Default
-      ...userData, // Override with actual user preference if exists
+      language: userData.language || 'en-US',
+      ...userData,
     };
     setUser(fullUser);
     localStorage.setItem('omnihub_user', JSON.stringify(fullUser));
@@ -109,7 +107,7 @@ const App: React.FC = () => {
     setUser(null);
     localStorage.removeItem('omnihub_user');
     setCurrentRoute(AppRoute.DASHBOARD);
-    setView('logout'); // Redirect to Logout Page
+    setView('logout');
   };
 
   const handleUpdateUser = (updates: Partial<User>) => {
@@ -141,7 +139,6 @@ const App: React.FC = () => {
     );
   }
 
-  // View Routing
   if (view === 'landing') {
     return <LandingPage onEnter={() => setView('auth')} />;
   }
@@ -179,7 +176,6 @@ const App: React.FC = () => {
                   </div>
               </div>
               
-              {/* Logout Review */}
               <div className="mt-8 max-w-lg w-full glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur animate-in slide-in-from-bottom-8 delay-200">
                   <div className="flex items-center gap-3 mb-3">
                       <img src="https://ui-avatars.com/api/?name=Alex+M&background=f59e0b&color=fff" className="w-10 h-10 rounded-full" />
@@ -199,7 +195,6 @@ const App: React.FC = () => {
       );
   }
 
-  // Ensure user is present for 'app' view (defensive check)
   if (!user && view === 'app') {
       setView('landing');
       return null;
@@ -208,7 +203,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (currentRoute) {
       case AppRoute.DASHBOARD: return <Dashboard currency={user?.currency} />;
-      case AppRoute.ANALYTICS: return <ComparisonTool />; // This now contains Growth & AI
+      case AppRoute.ANALYTICS: return <ComparisonTool />;
       case AppRoute.PUBLISHER: 
         return (
           <BulkPublisher 
@@ -235,7 +230,7 @@ const App: React.FC = () => {
       case AppRoute.RDP_SERVICES: return <RDPServices onBuy={handleQuickBuy} />;
       case AppRoute.OTP_SERVICES: return <OTPServices onBuy={handleQuickBuy} />;
       case AppRoute.ADD_FUND: return <AddFund currency={user?.currency} />;
-      case AppRoute.CHILD_PANEL: return <LearnAndEarn />; // Redirect to Merged Hub
+      case AppRoute.CHILD_PANEL: return <LearnAndEarn />;
       case AppRoute.ADMIN_CONTROL: return <AdminControl />;
       case AppRoute.ADMIN_API: return <AdminAPIConnect />;
       case AppRoute.SETTINGS: return (
@@ -260,7 +255,9 @@ const App: React.FC = () => {
     }
   };
 
-  const currentLang = GLOBAL_LANGUAGES.find(l => l.code === (user?.language || 'en-US'));
+  const userLangCode = user?.language || 'en-US';
+  const t = TRANSLATIONS[userLangCode] || TRANSLATIONS['en-US'];
+  const currentLang = GLOBAL_LANGUAGES.find(l => l.code === userLangCode);
 
   return (
     <div className="flex h-screen overflow-hidden animate-in fade-in duration-700 bg-transparent text-slate-100 font-sans selection:bg-indigo-500/30">
@@ -272,7 +269,7 @@ const App: React.FC = () => {
             <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm group-focus-within:text-indigo-400 transition-colors"></i>
             <input 
               type="text" 
-              placeholder="Search nodes, data, or stacks..." 
+              placeholder={t.search} 
               className="bg-slate-900/50 border border-white/5 rounded-full pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:bg-slate-900/80 w-64 md:w-96 shadow-inner text-white transition-all placeholder-slate-500"
             />
           </div>
@@ -280,7 +277,7 @@ const App: React.FC = () => {
             <div className="hidden md:block text-right mr-2">
                <p className="text-xs font-bold text-white leading-none">{user?.name}</p>
                <p className="text-[10px] text-indigo-400 leading-none mt-1 uppercase font-bold tracking-tighter">
-                {user?.role === 'admin' ? 'Master Admin' : 'Growth Specialist'}
+                {user?.role === 'admin' ? t.masterAdmin : t.growthSpecialist}
                </p>
             </div>
             
@@ -340,7 +337,6 @@ const App: React.FC = () => {
 
       <ChatBot />
 
-      {/* WhatsApp Admin Contact Button */}
       <a 
         href="https://wa.me/1234567890" 
         target="_blank" 

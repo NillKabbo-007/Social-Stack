@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { AppRoute, User } from '../types';
 import Logo from './Logo';
+import { TRANSLATIONS } from '../constants';
 
 interface SidebarProps {
   currentRoute: AppRoute;
@@ -13,37 +14,37 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, user }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isAdmin = user.role === 'admin';
+  const t = TRANSLATIONS[user.language || 'en-US'] || TRANSLATIONS['en-US'];
 
-  // Enhanced menu with brand colors and icons
+  // Enhanced menu with dynamic labels from translations
   const userMenuItems = [
-    { id: AppRoute.DASHBOARD, label: 'Dashboard', icon: 'fa-chart-pie', color: 'text-blue-400' },
-    { id: AppRoute.FILES, label: 'Import Data & Assets', icon: 'fa-file-import', color: 'text-cyan-400' }, // Moved up and renamed
-    { id: AppRoute.ANALYTICS, label: 'Growth & AI', icon: 'fa-brain-circuit', color: 'text-fuchsia-400' },
-    { id: AppRoute.COMMUNICATIONS, label: 'Inbox & Calls', icon: 'fa-headset', color: 'text-emerald-400' },
-    { id: AppRoute.PUBLISHER, label: 'Publisher', icon: 'fa-paper-plane', color: 'text-violet-400' },
+    { id: AppRoute.DASHBOARD, label: t.dashboard, icon: 'fa-chart-pie', color: 'text-blue-400' },
+    { id: AppRoute.FILES, label: t.assets, icon: 'fa-file-import', color: 'text-cyan-400' },
+    { id: AppRoute.ANALYTICS, label: t.growth, icon: 'fa-brain-circuit', color: 'text-fuchsia-400' },
+    { id: AppRoute.COMMUNICATIONS, label: t.communications, icon: 'fa-headset', color: 'text-emerald-400' },
+    { id: AppRoute.PUBLISHER, label: t.publisher, icon: 'fa-paper-plane', color: 'text-violet-400' },
     
-    // Social Platforms with Official Brand Colors
+    // Social Platforms
     { id: AppRoute.PLATFORM_META, label: 'Meta (FB & IG)', icon: 'fa-brands fa-meta', color: 'text-[#0668E1]' }, 
     { id: AppRoute.PLATFORM_TIKTOK, label: 'TikTok', icon: 'fa-brands fa-tiktok', color: 'text-[#000000] dark:text-[#ff0050]' }, 
     { id: AppRoute.PLATFORM_TWITTER, label: 'X (Twitter)', icon: 'fa-brands fa-x-twitter', color: 'text-slate-900 dark:text-white' }, 
     { id: AppRoute.PLATFORM_LINKEDIN, label: 'LinkedIn', icon: 'fa-brands fa-linkedin', color: 'text-[#0A66C2]' }, 
     { id: AppRoute.PLATFORM_YOUTUBE, label: 'YouTube', icon: 'fa-brands fa-youtube', color: 'text-[#FF0000]' }, 
-    { id: AppRoute.PLATFORM_PINTEREST, label: 'Pinterest', icon: 'fa-brands fa-pinterest', color: 'text-[#E60023]' }, 
 
-    { id: AppRoute.LEARN_EARN, label: 'Academy & Partner', icon: 'fa-graduation-cap', color: 'text-amber-400' },
-    { id: AppRoute.INTEGRATIONS, label: 'Apps & Connections', icon: 'fa-network-wired', color: 'text-pink-400' },
-    { id: AppRoute.ENTERTAINMENT, label: 'Content Hub', icon: 'fa-tv', color: 'text-rose-400' },
-    { id: AppRoute.SMM_PANEL, label: 'SMM Smart Panel', icon: 'fa-users-viewfinder', color: 'text-red-400' },
-    { id: AppRoute.RDP_SERVICES, label: 'VPS & Proxies', icon: 'fa-server', color: 'text-orange-400' },
-    { id: AppRoute.OTP_SERVICES, label: 'OTP Numbers', icon: 'fa-comment-sms', color: 'text-cyan-400' },
-    { id: AppRoute.ADD_FUND, label: 'Add Fund', icon: 'fa-wallet', color: 'text-teal-400' },
-    { id: AppRoute.SETTINGS, label: 'Profile Settings', icon: 'fa-user-gear', color: 'text-slate-400' },
+    { id: AppRoute.LEARN_EARN, label: t.academy, icon: 'fa-graduation-cap', color: 'text-amber-400' },
+    { id: AppRoute.INTEGRATIONS, label: t.apps, icon: 'fa-network-wired', color: 'text-pink-400' },
+    { id: AppRoute.ENTERTAINMENT, label: t.entertainment, icon: 'fa-tv', color: 'text-rose-400' },
+    { id: AppRoute.SMM_PANEL, label: t.smm, icon: 'fa-users-viewfinder', color: 'text-red-400' },
+    { id: AppRoute.RDP_SERVICES, label: t.vps, icon: 'fa-server', color: 'text-orange-400' },
+    { id: AppRoute.OTP_SERVICES, label: t.otp, icon: 'fa-comment-sms', color: 'text-cyan-400' },
+    { id: AppRoute.ADD_FUND, label: t.funds, icon: 'fa-wallet', color: 'text-teal-400' },
+    { id: AppRoute.SETTINGS, label: t.settings, icon: 'fa-user-gear', color: 'text-slate-400' },
   ];
 
   const adminMenuItems = [
-    { id: AppRoute.ADMIN_CONTROL, label: 'Admin Master', icon: 'fa-user-shield', color: 'text-slate-400' },
-    { id: AppRoute.ADMIN_API, label: 'API Connect', icon: 'fa-plug', color: 'text-gray-400' },
-    { id: AppRoute.DEPLOYMENT, label: 'Build & Deploy', icon: 'fa-rocket', color: 'text-zinc-400' },
+    { id: AppRoute.ADMIN_CONTROL, label: t.admin, icon: 'fa-user-shield', color: 'text-slate-400' },
+    { id: AppRoute.ADMIN_API, label: t.api, icon: 'fa-plug', color: 'text-gray-400' },
+    { id: AppRoute.DEPLOYMENT, label: t.deploy, icon: 'fa-rocket', color: 'text-zinc-400' },
   ];
 
   const getButtonStyle = (active: boolean) => {
@@ -79,7 +80,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
       </div>
       
       <nav className="flex-1 p-3 overflow-y-auto no-scrollbar space-y-1 relative">
-        {/* Glow effect behind active item */}
         <div className="absolute inset-0 pointer-events-none opacity-20 bg-gradient-to-b from-indigo-500/0 via-indigo-500/5 to-indigo-500/0"></div>
 
         {!isCollapsed && <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] px-3 py-2 mb-1 mt-2 animate-in fade-in slide-in-from-left-2 duration-500">Main Deck</p>}
@@ -96,7 +96,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
             {!isCollapsed && (
               <div className="flex flex-1 justify-between items-center opacity-0 animate-in fade-in slide-in-from-left-1 duration-300 fill-mode-forwards" style={{animationDelay: '100ms', opacity: 1}}>
                 <span className="font-bold tracking-wide whitespace-nowrap">{item.label}</span>
-                {/* Visual Connection Indicator for Platforms */}
                 {[AppRoute.PLATFORM_META, AppRoute.PLATFORM_TIKTOK, AppRoute.PLATFORM_TWITTER, AppRoute.PLATFORM_LINKEDIN, AppRoute.PLATFORM_YOUTUBE].includes(item.id) && (
                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>
                 )}
@@ -126,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
           </>
         )}
         
-        <div className="h-20"></div> {/* Spacer */}
+        <div className="h-20"></div>
       </nav>
 
       <div className="p-4 border-t border-white/5 bg-black/20 backdrop-blur-md">

@@ -142,15 +142,21 @@ const TwitterDashboard: React.FC = () => {
       if (!topicToUse) return;
       
       setIsGeneratingAi(true);
-      const generatedThread = await generateTwitterThread(topicToUse, aiTone);
-      if (generatedThread && generatedThread.length > 0) {
-          setTweets(generatedThread);
-          setShowAiModal(false);
-          setAiTopic('');
-      } else {
-          alert('Failed to generate thread. Please try a different topic.');
+      try {
+        const generatedThread = await generateTwitterThread(topicToUse, aiTone);
+        if (generatedThread && generatedThread.length > 0) {
+            setTweets(generatedThread);
+            setShowAiModal(false);
+            setAiTopic('');
+        } else {
+            alert('Failed to generate thread. Please try a different topic.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred while generating the thread.');
+      } finally {
+        setIsGeneratingAi(false);
       }
-      setIsGeneratingAi(false);
   };
 
   const handlePostTweet = () => {
@@ -306,7 +312,12 @@ const TwitterDashboard: React.FC = () => {
                   {/* Composer */}
                   <div className="glass-panel p-6 rounded-[2rem] border-slate-700/50 bg-slate-900/50 relative overflow-hidden">
                       <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-sm font-black text-white uppercase tracking-widest">Compose Thread</h3>
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Compose Thread</h3>
+                            {tweets.length > 1 && (
+                                <span className="bg-indigo-600/20 text-indigo-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-indigo-500/30">Thread Active</span>
+                            )}
+                          </div>
                           <span className="text-[10px] font-bold text-slate-500 uppercase">{tweets.reduce((acc, t) => acc + t.length, 0)} chars total</span>
                       </div>
 
@@ -324,7 +335,7 @@ const TwitterDashboard: React.FC = () => {
                                           value={tweet}
                                           onChange={(e) => updateTweet(index, e.target.value)}
                                           placeholder={index === 0 ? "What's happening?!" : "Add another tweet..."}
-                                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-white text-sm focus:ring-1 focus:ring-[#1d9bf0] resize-none h-28"
+                                          className={`w-full bg-slate-800/50 border rounded-xl p-4 text-white text-sm focus:ring-1 focus:ring-[#1d9bf0] resize-none h-28 transition-all ${tweet.length > 280 ? 'border-rose-500/50' : 'border-slate-700'}`}
                                       />
                                       {index > 0 && (
                                           <button onClick={() => removeTweet(index)} className="absolute top-2 right-2 text-slate-500 hover:text-rose-500 transition-colors">
@@ -342,12 +353,14 @@ const TwitterDashboard: React.FC = () => {
                       </div>
 
                       <div className="flex justify-between items-center mt-6 pt-6 border-t border-slate-800">
-                          <button onClick={addTweetToThread} className="text-[#1d9bf0] text-xl hover:scale-110 transition-transform">
+                          <button onClick={addTweetToThread} className="text-[#1d9bf0] text-xl hover:scale-110 transition-transform flex items-center gap-2 group">
                               <i className="fa-solid fa-circle-plus"></i>
+                              <span className="text-[10px] font-black uppercase opacity-0 group-hover:opacity-100 transition-opacity">Add Tweet</span>
                           </button>
                           
                           <div className="flex items-center gap-4">
-                              <div className="relative">
+                              <div className="relative group/sched">
+                                  <label className="absolute -top-6 left-0 text-[8px] font-black text-slate-500 uppercase opacity-0 group-focus-within/sched:opacity-100 transition-opacity">Schedule For</label>
                                   <input 
                                       type="datetime-local" 
                                       value={scheduleTime}
@@ -358,7 +371,7 @@ const TwitterDashboard: React.FC = () => {
                               <button 
                                   onClick={handlePostTweet}
                                   disabled={isPosting || tweets.every(t => !t.trim())}
-                                  className="px-6 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2 disabled:opacity-50"
+                                  className="px-6 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center gap-2 disabled:opacity-50 btn-3d"
                               >
                                   {isPosting ? <i className="fa-solid fa-circle-notch fa-spin"></i> : scheduleTime ? <i className="fa-solid fa-clock"></i> : <i className="fa-regular fa-paper-plane"></i>}
                                   {scheduleTime ? 'Schedule' : 'Post All'}
@@ -441,61 +454,68 @@ const TwitterDashboard: React.FC = () => {
 
           {/* AI Writer Modal */}
           {showAiModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                   <div className="bg-[#0f172a] border border-slate-700 w-full max-w-md rounded-[2rem] p-8 space-y-6 shadow-2xl relative">
                       <button onClick={() => setShowAiModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors">
                           <i className="fa-solid fa-xmark text-xl"></i>
                       </button>
                       
                       <div className="text-center space-y-2">
-                          <div className="w-16 h-16 bg-[#1d9bf0]/10 rounded-2xl flex items-center justify-center text-[#1d9bf0] text-3xl mx-auto mb-4">
+                          <div className="w-16 h-16 bg-[#1d9bf0]/10 rounded-2xl flex items-center justify-center text-[#1d9bf0] text-3xl mx-auto mb-4 icon-4d">
                               <i className="fa-solid fa-wand-magic-sparkles"></i>
                           </div>
                           <h3 className="text-2xl font-black text-white uppercase tracking-tighter">AI Thread Writer</h3>
-                          <p className="text-xs text-slate-400">Generate viral threads optimized for engagement.</p>
+                          <p className="text-xs text-slate-400 font-medium">Generate viral threads optimized for engagement using Gemini 3 Pro.</p>
                       </div>
 
                       <div className="space-y-4">
-                          <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Topic / Keywords</label>
+                          <div className="space-y-2">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Topic / Keywords</label>
                               <input 
                                   type="text" 
                                   value={aiTopic}
                                   onChange={(e) => setAiTopic(e.target.value)}
                                   placeholder="e.g. AI in Marketing, Web3 Trends..."
-                                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-1 focus:ring-[#1d9bf0] text-white"
+                                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm focus:ring-1 focus:ring-[#1d9bf0] text-white font-medium"
                               />
                           </div>
-                          <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Tone</label>
-                              <select 
-                                  value={aiTone}
-                                  onChange={(e) => setAiTone(e.target.value)}
-                                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-1 focus:ring-[#1d9bf0] text-white"
-                              >
-                                  <option>Viral / Hype</option>
-                                  <option>Professional</option>
-                                  <option>Educational</option>
-                                  <option>Controversial</option>
-                                  <option>Storytelling</option>
-                              </select>
+                          <div className="space-y-2">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tone & Voice</label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {['Viral / Hype', 'Professional', 'Educational', 'Witty', 'Storytelling', 'Controversial'].map(tone => (
+                                    <button 
+                                        key={tone}
+                                        onClick={() => setAiTone(tone)}
+                                        className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase border transition-all ${aiTone === tone ? 'bg-[#1d9bf0] border-[#1d9bf0] text-white shadow-lg' : 'bg-slate-800 border-transparent text-slate-500 hover:text-slate-300'}`}
+                                    >
+                                        {tone}
+                                    </button>
+                                ))}
+                              </div>
                           </div>
                           
-                          <div className="flex flex-wrap gap-2 mt-2">
-                              {['SaaS Growth', 'React Tips', 'Startup Life', 'AI Tools'].map(t => (
-                                  <button key={t} onClick={() => setAiTopic(t)} className="px-3 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">{t}</button>
-                              ))}
+                          <div className="pt-2">
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 ml-1">Quick Presets</p>
+                            <div className="flex flex-wrap gap-2">
+                                {['SaaS Growth', 'React Tips', 'Startup Life', 'AI Tools'].map(t => (
+                                    <button key={t} onClick={() => setAiTopic(t)} className="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-lg text-[10px] font-bold text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">{t}</button>
+                                ))}
+                            </div>
                           </div>
                       </div>
 
                       <button 
                           onClick={() => handleAiGenerate()}
                           disabled={isGeneratingAi || !aiTopic}
-                          className="w-full py-4 bg-white text-black rounded-xl font-black text-sm uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                          className="w-full py-5 bg-white text-black rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50 btn-3d"
                       >
-                          {isGeneratingAi ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-bolt"></i>}
-                          {isGeneratingAi ? 'Writing Thread...' : 'Generate Content'}
+                          {isGeneratingAi ? <i className="fa-solid fa-circle-notch fa-spin text-lg"></i> : <i className="fa-solid fa-bolt text-lg text-amber-500"></i>}
+                          {isGeneratingAi ? 'Synthesizing Thread...' : 'Generate Content'}
                       </button>
+                      
+                      <p className="text-[9px] text-center text-slate-600 font-bold uppercase tracking-tighter">
+                        Powered by Gemini AI • Output is editable after generation
+                      </p>
                   </div>
               </div>
           )}

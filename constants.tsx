@@ -56,7 +56,7 @@ export const GLOBAL_LANGUAGES = [
   { code: 'th-TH', name: 'ไทย (Thailand)', flag: '🇹🇭', region: 'Asia' },
   { code: 'ms-MY', name: 'Bahasa Melayu', flag: '🇲🇾', region: 'Asia' },
   { code: 'fil-PH', name: 'Filipino', flag: '🇵🇭', region: 'Asia' },
-  { code: 'ur-PK', name: 'اردو (Pakistan)', flag: '🇵🇰', region: 'Asia' },
+  { code: 'ur-PK', name: 'اردো (Pakistan)', flag: '🇵🇰', region: 'Asia' },
 
   // South America
   { code: 'pt-BR', name: 'Português (Brazil)', flag: '🇧🇷', region: 'South America' },
@@ -74,6 +74,93 @@ export const GLOBAL_LANGUAGES = [
   { code: 'en-AU', name: 'English (Australia)', flag: '🇦🇺', region: 'Oceania' },
   { code: 'en-NZ', name: 'English (New Zealand)', flag: '🇳🇿', region: 'Oceania' },
 ];
+
+export const TRANSLATIONS: Record<string, any> = {
+  'en-US': {
+    dashboard: 'Dashboard',
+    assets: 'Import Data & Assets',
+    growth: 'Growth & AI',
+    communications: 'Inbox & Calls',
+    publisher: 'Publisher',
+    academy: 'Academy & Partner',
+    apps: 'Apps & Connections',
+    entertainment: 'Content Hub',
+    smm: 'SMM Smart Panel',
+    vps: 'VPS & Proxies',
+    otp: 'OTP Numbers',
+    funds: 'Add Funds',
+    settings: 'Profile Settings',
+    admin: 'Admin Master',
+    api: 'API Connect',
+    deploy: 'Build & Deploy',
+    search: 'Search nodes, data, or stacks...',
+    masterAdmin: 'Master Admin',
+    growthSpecialist: 'Growth Specialist'
+  },
+  'bn-BD': {
+    dashboard: 'ড্যাশবোর্ড',
+    assets: 'ডেটা ও অ্যাসেট',
+    growth: 'গ্রোথ ও এআই',
+    communications: 'ইনবক্স ও কল',
+    publisher: 'পাবলিশার',
+    academy: 'একাডেমি',
+    apps: 'অ্যাপস ও কানেকশন',
+    entertainment: 'কনটেন্ট হাব',
+    smm: 'এসএমএম প্যানেল',
+    vps: 'ভিপিএস ও প্রক্সি',
+    otp: 'ওটিপি নাম্বার',
+    funds: 'ফান্ড যোগ করুন',
+    settings: 'প্রোফাইল সেটিংস',
+    admin: 'অ্যাডমিন মাস্টার',
+    api: 'এপিআই কানেক্ট',
+    deploy: 'বিল্ড ও ডেপ্লয়',
+    search: 'সার্চ করুন...',
+    masterAdmin: 'প্রধান অ্যাডমিন',
+    growthSpecialist: 'গ্রোথ স্পেশালিস্ট'
+  },
+  'hi-IN': {
+    dashboard: 'डैशबोर्ड',
+    assets: 'डेटा और एसेट',
+    growth: 'ग्रोथ और एआई',
+    communications: 'इनबॉक्स और कॉल',
+    publisher: 'पब्लिशर',
+    academy: 'अकादमी',
+    apps: 'ऐप्स और कनेक्शन',
+    entertainment: 'कंटेंट हब',
+    smm: 'एसएमएम पैनल',
+    vps: 'वीपीएस और प्रॉक्सी',
+    otp: 'ओटीपी नंबर',
+    funds: 'फंड जोड़ें',
+    settings: 'प्रोफ़ाइल सेटिंग्स',
+    admin: 'एडमिन मास्टर',
+    api: 'एपीआई कनेक्ट',
+    deploy: 'बिल्ड और डेप्लॉय',
+    search: 'खोजें...',
+    masterAdmin: 'मास्टर एडमिन',
+    growthSpecialist: 'ग्रोथ विशेषज्ञ'
+  },
+  'es-ES': {
+    dashboard: 'Tablero',
+    assets: 'Importar Datos',
+    growth: 'Crecimiento e IA',
+    communications: 'Bandeja y Llamadas',
+    publisher: 'Publicador',
+    academy: 'Academia',
+    apps: 'Apps y Conexiones',
+    entertainment: 'Centro de Contenido',
+    smm: 'Panel SMM',
+    vps: 'VPS y Proxies',
+    otp: 'Números OTP',
+    funds: 'Agregar Fondos',
+    settings: 'Ajustes de Perfil',
+    admin: 'Maestro Admin',
+    api: 'Conexión API',
+    deploy: 'Construir y Desplegar',
+    search: 'Buscar nodos...',
+    masterAdmin: 'Admin Maestro',
+    growthSpecialist: 'Especialista en Crecimiento'
+  }
+};
 
 export const GLOBAL_INTEGRATIONS = [
   // Social Networks
@@ -221,7 +308,7 @@ export const SMM_SERVICES = [
   { category: 'Instagram', group: 'Social', icon: 'fa-brands fa-instagram', color: '#E1306C', items: [
     { id: '101', type: 'Followers', name: 'Instagram Real Followers [Refill 30D]', price: 2.90, per: 1000, speed: '20K/Day', min: 100, max: 500000, avgTime: '1 Hour', guarantee: '30 Days', provider: 'PeakSMM', region: 'Global' },
     { id: '102', type: 'Followers', name: 'Instagram Followers [Brazil] - Real Active', price: 5.50, per: 1000, speed: '2K/Day', min: 100, max: 50000, avgTime: '3 Hours', guarantee: '30 Days', provider: 'LatamBoost', region: 'Brazil' },
-    { id: '103', type: 'Followers', name: 'Instagram Followers [USA] - High Quality', price: 8.90, per: 1000, speed: '1K/Day', min: 50, max: 20000, avgTime: '6 Hours', guarantee: 'Non-Drop', provider: 'USAGrowth', region: 'USA' },
+    { id: '103', type: 'Followers', name: 'Instagram Followers [USA] - High Quality', price: 8.90, per: 1000, speed: '1K/Day', min: 50, max: 2000, avgTime: '6 Hours', guarantee: 'Non-Drop', provider: 'USAGrowth', region: 'USA' },
     { id: '104', type: 'Likes', name: 'Instagram Likes [Real HQ]', price: 0.95, per: 1000, speed: 'Instant', min: 50, max: 100000, avgTime: '5 Mins', guarantee: 'Lifetime', provider: 'TurboSMM', region: 'Global' },
     { id: '105', type: 'Comments', name: 'Instagram Comments [Custom]', price: 12.50, per: 1000, speed: 'Organic', min: 10, max: 5000, avgTime: '6 Hours', guarantee: 'Non-Drop', provider: 'SocialKing', region: 'Global' },
     { id: '106', type: 'Views', name: 'Instagram Reels Views', price: 0.20, per: 1000, speed: '1M/Day', min: 100, max: 10000000, avgTime: 'Instant', guarantee: 'Lifetime', provider: 'ViralNodes', region: 'Global' },

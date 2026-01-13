@@ -47,7 +47,6 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
       return Array.from(regions).sort();
   }, []);
 
-  // Reset active category if it's not in the visible list
   useEffect(() => {
     const isCurrentVisible = visibleCategories.find(c => c.category === activeCategory);
     if (!isCurrentVisible && visibleCategories.length > 0) {
@@ -55,7 +54,6 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
     }
   }, [visibleCategories, activeGroup]);
 
-  // Reset active type when category changes
   useEffect(() => {
     setActiveType('All');
   }, [activeCategory]);
@@ -64,7 +62,7 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
     return SMM_SERVICES.find(c => c.category === activeCategory) || SMM_SERVICES[0];
   }, [activeCategory]);
 
-  const themeColor = activeCategoryData.color; // Dynamic Brand Color
+  const themeColor = activeCategoryData.color;
 
   const availableTypes = useMemo(() => {
     const types = new Set<string>();
@@ -75,10 +73,8 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
   }, [activeCategoryData]);
 
   const filteredServices = useMemo(() => {
-    // 1. Base List Selection
     let baseList = [];
     if (searchQuery) {
-        // Global search across all categories
         baseList = SMM_SERVICES.flatMap(cat => cat.items.map(item => ({
             ...item, 
             categoryName: cat.category, 
@@ -86,7 +82,6 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
             categoryColor: cat.color
         })));
     } else {
-        // Current category items
         baseList = activeCategoryData.items.map(item => ({
             ...item, 
             categoryName: activeCategoryData.category,
@@ -95,26 +90,20 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
         }));
     }
 
-    // 2. Apply Filters
     return baseList.filter((item: any) => {
         const matchesSearch = !searchQuery || 
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            item.id.includes(searchQuery);
-        
+            item.id.toString().includes(searchQuery);
         const matchesType = activeType === 'All' || item.type === activeType;
-        
         const matchesRegion = selectedRegion === 'All' || 
             item.region === selectedRegion || 
             (selectedRegion === 'Global' && item.region === 'Global');
-
         return matchesSearch && matchesType && matchesRegion;
     });
   }, [activeCategoryData, activeType, searchQuery, selectedRegion]);
 
-  // Group services by type for display
   const groupedDisplayServices = useMemo(() => {
       if (searchQuery || activeType !== 'All' || selectedRegion !== 'All') return { 'Results': filteredServices };
-      
       const groups: Record<string, typeof filteredServices> = {};
       filteredServices.forEach(service => {
           const type = (service as any).type || 'Other';
@@ -125,48 +114,34 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
   }, [filteredServices, searchQuery, activeType, selectedRegion]);
 
   const totalPrice = useMemo(() => {
-    if (!selectedService) return formatPrice(0);
-    const rawTotal = (selectedService.price / selectedService.per) * quantity;
-    return formatPrice(rawTotal);
-  }, [selectedService, quantity, currency]);
+    if (!selectedService) return 0;
+    return (selectedService.price / selectedService.per) * quantity;
+  }, [selectedService, quantity]);
 
   const handlePlaceOrder = () => {
     if (!selectedService) return;
     if (!link) {
-        alert("Please enter a valid link.");
+        alert("Please enter a destination link.");
         return;
     }
-    const rawTotal = (selectedService.price / selectedService.per) * quantity;
     
-    // Simulate API call
     setTimeout(() => {
         const newOrder = {
             id: Math.floor(Math.random() * 10000) + 5000,
             date: new Date().toISOString().split('T')[0],
             service: selectedService.name,
             link: link,
-            charge: rawTotal,
+            charge: totalPrice,
             quantity: quantity,
             status: 'Pending'
         };
         setOrderHistory([newOrder, ...orderHistory]);
         onBuy({
-            name: `SMM: ${selectedService.name} (${quantity})`,
-            price: rawTotal 
+            name: `SMM: ${selectedService.name}`,
+            price: totalPrice 
         });
-        alert(`Order #${newOrder.id} placed successfully!`);
+        alert(`Order #${newOrder.id} initiated! Deployment starting in 15m.`);
     }, 500);
-  };
-
-  const handlePlaceMassOrder = () => {
-      if(!massOrderContent.trim()) return;
-      const lines = massOrderContent.trim().split('\n');
-      const totalOrders = lines.length;
-      alert(`Processing ${totalOrders} orders via Bulk API... (Simulation)`);
-      onBuy({
-          name: `Mass Order (${totalOrders} items)`,
-          price: totalOrders * 1.5 // Mock price
-      });
   };
 
   const getStatusColor = (status: string) => {
@@ -181,430 +156,431 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
   };
 
   return (
-    <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 pb-12 font-sans">
+      
+      {/* Header Deck */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-white">Global Service Aggregator</h2>
-          <p className="text-slate-400">Unified access to premium SMM networks worldwide.</p>
+          <h2 className="text-4xl font-black text-white uppercase tracking-tighter font-heading">SMM Deployment Grid</h2>
+          <p className="text-slate-400 font-medium">Provision viral energy and audience growth across global social nodes.</p>
         </div>
         
-        <div className="flex items-center gap-4">
-            <div className="flex bg-slate-900/50 p-1 rounded-xl border border-slate-700/50">
-                {[
-                    { id: 'single', label: 'Single Order', icon: 'fa-plus' },
-                    { id: 'mass', label: 'Mass Order', icon: 'fa-layer-group' },
-                    { id: 'history', label: 'Orders', icon: 'fa-clock-rotate-left' }
-                ].map(mode => (
-                    <button
-                        key={mode.id}
-                        onClick={() => setViewMode(mode.id as any)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center gap-2 ${
-                            viewMode === mode.id 
-                            ? 'bg-indigo-600 text-white shadow-lg' 
-                            : 'text-slate-500 hover:text-slate-200'
-                        }`}
-                    >
-                        <i className={`fa-solid ${mode.icon}`}></i>
-                        <span className="hidden sm:inline">{mode.label}</span>
-                    </button>
-                ))}
-            </div>
+        <div className="flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl shadow-2xl">
+            {[
+                { id: 'single', label: 'Provision', icon: 'fa-plus-circle' },
+                { id: 'mass', label: 'Bulk Batch', icon: 'fa-layer-group' },
+                { id: 'history', label: 'Nodes Status', icon: 'fa-wave-square' }
+            ].map(mode => (
+                <button
+                    key={mode.id}
+                    onClick={() => setViewMode(mode.id as any)}
+                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                        viewMode === mode.id 
+                        ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] scale-105' 
+                        : 'text-slate-500 hover:text-slate-200'
+                    }`}
+                >
+                    <i className={`fa-solid ${mode.icon}`}></i>
+                    <span>{mode.label}</span>
+                </button>
+            ))}
         </div>
       </div>
 
       {viewMode === 'single' && (
-        <>
-            {/* Filters */}
-            <div className="space-y-6">
-                <div className="flex flex-col lg:flex-row justify-between gap-4 items-center">
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 sm:pb-0 border-b sm:border-b-0 border-slate-700/50 w-full lg:w-auto">
-                        {availableGroups.map(group => (
-                            <button
-                                key={group}
-                                onClick={() => { setActiveGroup(group); setSearchQuery(''); }}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${
-                                    activeGroup === group 
-                                    ? 'border-indigo-500 text-indigo-400' 
-                                    : 'border-transparent text-slate-500 hover:text-slate-300'
-                                }`}
-                            >
-                                {group}
-                            </button>
-                        ))}
-                    </div>
-                    
-                    <div className="flex gap-4 w-full lg:w-auto">
-                        <div className="relative">
-                            <select 
-                                value={selectedRegion}
-                                onChange={(e) => setSelectedRegion(e.target.value)}
-                                className="bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-8 py-2.5 text-xs font-bold focus:ring-1 focus:ring-indigo-500 text-white appearance-none cursor-pointer hover:bg-slate-800 transition-colors h-full"
-                            >
-                                {availableRegions.map(r => <option key={r} value={r}>{r === 'All' ? 'All Regions' : r}</option>)}
-                            </select>
-                            <i className="fa-solid fa-earth-americas absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none"></i>
-                            <i className="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[10px] pointer-events-none"></i>
-                        </div>
-
-                        <div className="relative flex-1 lg:w-64">
-                            <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                            <input 
-                            type="text"
-                            placeholder="Search Service ID, Name..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setSelectedService(null);
-                            }}
-                            className="bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-xs focus:ring-1 focus:ring-indigo-500 w-full text-white placeholder-slate-500"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {!searchQuery && (
-                    <div className="space-y-4">
-                        {/* Categories Horizontal Scroll */}
-                        <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide no-scrollbar">
-                            {visibleCategories.map(cat => (
-                            <button
-                                key={cat.category}
-                                onClick={() => {
-                                setActiveCategory(cat.category);
-                                setSelectedService(null);
-                                setQuantity(1000);
-                                }}
-                                className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl transition-all border font-bold text-[11px] uppercase tracking-wider whitespace-nowrap ${
-                                activeCategory === cat.category 
-                                    ? `bg-[${cat.color}] text-white shadow-lg scale-105 border-transparent` 
-                                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white hover:border-slate-600'
-                                }`}
-                                style={{ 
-                                    backgroundColor: activeCategory === cat.category ? cat.color : undefined,
-                                    borderColor: activeCategory === cat.category ? cat.color : undefined,
-                                    boxShadow: activeCategory === cat.category ? `0 10px 20px -5px ${cat.color}40` : undefined
-                                }}
-                            >
-                                <i className={`${cat.icon} text-base`}></i>
-                                {cat.category}
-                            </button>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left: Service Explorer */}
+            <div className="lg:col-span-8 space-y-6">
+                
+                {/* Discovery Filters */}
+                <div className="glass-panel p-6 rounded-[2.5rem] border-slate-700/50 flex flex-col gap-6">
+                    <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
+                        <div className="flex gap-1.5 bg-black/30 p-1 rounded-xl border border-white/5 overflow-x-auto no-scrollbar w-full md:w-auto">
+                            {availableGroups.map(group => (
+                                <button
+                                    key={group}
+                                    onClick={() => { setActiveGroup(group); setSearchQuery(''); }}
+                                    className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${
+                                        activeGroup === group 
+                                        ? 'bg-white/10 text-white' 
+                                        : 'text-slate-500 hover:text-slate-300'
+                                    }`}
+                                >
+                                    {group}
+                                </button>
                             ))}
                         </div>
+                        
+                        <div className="flex gap-3 w-full md:w-auto">
+                            <div className="relative group">
+                                <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                                <input 
+                                    type="text"
+                                    placeholder="Search nodes..."
+                                    value={searchQuery}
+                                    onChange={(e) => { setSearchQuery(e.target.value); setSelectedService(null); }}
+                                    className="bg-slate-900 border border-slate-800 rounded-2xl pl-11 pr-4 py-3 text-sm focus:ring-1 focus:ring-indigo-500 w-full md:w-64 text-white placeholder-slate-600 transition-all font-medium shadow-inner"
+                                />
+                            </div>
+                            <div className="relative">
+                                <select 
+                                    value={selectedRegion}
+                                    onChange={(e) => setSelectedRegion(e.target.value)}
+                                    className="bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-10 py-3 text-xs font-black uppercase tracking-widest focus:ring-1 focus:ring-indigo-500 text-slate-300 appearance-none cursor-pointer hover:bg-slate-800 transition-colors shadow-inner"
+                                >
+                                    {availableRegions.map(r => <option key={r} value={r}>{r === 'All' ? 'Global' : r}</option>)}
+                                </select>
+                                <i className="fa-solid fa-earth-americas absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-[10px] pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
 
-                        {/* Subcategories (Types) Filters - Granular Tabs */}
-                        {availableTypes.length > 1 && (
-                            <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-900/30 p-2 rounded-xl border border-slate-800/50">
-                                {availableTypes.map(t => (
+                    {!searchQuery && (
+                        <div className="space-y-6">
+                            <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar">
+                                {visibleCategories.map(cat => (
                                     <button
-                                        key={t}
-                                        onClick={() => setActiveType(t)}
-                                        className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                            activeType === t 
-                                            ? 'text-white border-transparent shadow-md' 
-                                            : 'bg-transparent border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800'
+                                        key={cat.category}
+                                        onClick={() => { setActiveCategory(cat.category); setSelectedService(null); }}
+                                        className={`flex-shrink-0 flex items-center gap-3 px-6 py-4 rounded-[1.5rem] transition-all border-2 font-black text-xs uppercase tracking-tighter whitespace-nowrap icon-4d ${
+                                        activeCategory === cat.category 
+                                            ? `text-white shadow-2xl` 
+                                            : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
                                         }`}
                                         style={{ 
-                                            backgroundColor: activeType === t ? themeColor : 'transparent',
-                                            textShadow: activeType === t ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
+                                            backgroundColor: activeCategory === cat.category ? cat.color : undefined,
+                                            borderColor: activeCategory === cat.category ? cat.color : undefined,
                                         }}
                                     >
-                                        {t}
+                                        <i className={`${cat.icon} text-lg`}></i>
+                                        {cat.category}
                                     </button>
                                 ))}
                             </div>
-                        )}
-                    </div>
-                )}
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
-                {/* Service List */}
-                <div className="lg:col-span-7 xl:col-span-8 flex flex-col">
-                    <div className="glass-panel rounded-3xl overflow-hidden flex flex-col border-slate-700/50 shadow-xl h-[650px]">
-                        <div className="p-4 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-md flex justify-between items-center sticky top-0 z-20">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700">
-                                    {!searchQuery && <i className={`${activeCategoryData.icon}`} style={{ color: activeCategoryData.color }}></i>}
-                                    {searchQuery && <i className="fa-solid fa-search text-slate-400"></i>}
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-black text-white uppercase tracking-tighter">
-                                        {searchQuery ? 'Search Results' : `${activeCategoryData.category} Catalogue`}
-                                    </h3>
-                                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{filteredServices.length} Nodes Available</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="overflow-y-auto flex-1 p-4 space-y-6 custom-scrollbar">
-                            {Object.entries(groupedDisplayServices).map(([groupName, items]) => (
-                                <div key={groupName} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                    {(!searchQuery && activeType === 'All' && selectedRegion === 'All') && (
-                                        <div className="flex items-center gap-4 mb-3 px-2">
-                                            <h4 className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-lg border" style={{ color: themeColor, borderColor: `${themeColor}30`, backgroundColor: `${themeColor}10` }}>
-                                                {groupName}
-                                            </h4>
-                                            <div className="h-px bg-slate-800 flex-1"></div>
-                                        </div>
-                                    )}
-                                    <div className="space-y-3">
-                                        {(items as any[]).map((service: any) => (
-                                            <div 
-                                                key={service.id}
-                                                onClick={() => {
-                                                    setSelectedService(service);
-                                                    setQuantity(Math.max(1000, service.min));
-                                                }}
-                                                className={`p-5 rounded-2xl cursor-pointer transition-all border relative overflow-hidden group hover:-translate-y-0.5 ${
-                                                    selectedService?.id === service.id 
-                                                    ? 'bg-slate-800 shadow-xl' 
-                                                    : 'bg-slate-900/40 border-slate-800 hover:bg-slate-800 hover:border-slate-600'
-                                                }`}
-                                                style={{ 
-                                                    borderColor: selectedService?.id === service.id ? themeColor : undefined,
-                                                    boxShadow: selectedService?.id === service.id ? `0 0 20px ${themeColor}20` : undefined
-                                                }}
-                                            >
-                                                <div className="flex flex-col sm:flex-row gap-5 items-start">
-                                                    {/* Service Info */}
-                                                    <div className="flex-1 w-full">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <span className="text-[9px] font-mono text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 group-hover:border-slate-500 transition-colors">ID: {service.id}</span>
-                                                            {service.region && service.region !== 'Global' && (
-                                                                <span className="text-[9px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded uppercase border border-amber-400/20">{service.region}</span>
-                                                            )}
-                                                            <span className="text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded uppercase">{service.provider}</span>
-                                                        </div>
-                                                        
-                                                        <h4 className={`text-sm font-bold leading-tight mb-3 ${selectedService?.id === service.id ? 'text-white' : 'text-slate-200'}`}>{service.name}</h4>
-                                                        
-                                                        {/* Detailed Stats Grid */}
-                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[9px]">
-                                                            <div className="bg-slate-950/30 p-1.5 rounded-lg border border-slate-800/50 flex flex-col justify-center">
-                                                                <p className="text-slate-500 font-bold uppercase mb-0.5 text-[8px]">Speed</p>
-                                                                <p className="text-emerald-400 font-bold truncate">{service.speed}</p>
-                                                            </div>
-                                                            <div className="bg-slate-950/30 p-1.5 rounded-lg border border-slate-800/50 flex flex-col justify-center">
-                                                                <p className="text-slate-500 font-bold uppercase mb-0.5 text-[8px]">Start</p>
-                                                                <p className="text-blue-400 font-bold truncate">{service.avgTime}</p>
-                                                            </div>
-                                                            <div className="bg-slate-950/30 p-1.5 rounded-lg border border-slate-800/50 flex flex-col justify-center">
-                                                                <p className="text-slate-500 font-bold uppercase mb-0.5 text-[8px]">Refill</p>
-                                                                <p className="text-amber-400 font-bold truncate">{service.guarantee}</p>
-                                                            </div>
-                                                            <div className="bg-slate-950/30 p-1.5 rounded-lg border border-slate-800/50 flex flex-col justify-center">
-                                                                <p className="text-slate-500 font-bold uppercase mb-0.5 text-[8px]">Limit</p>
-                                                                <p className="text-slate-300 font-bold truncate">{service.min}-{service.max}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Price & Action */}
-                                                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3 sm:gap-2 pl-0 sm:pl-4 sm:border-l border-slate-700/30">
-                                                        <div className="text-left sm:text-right">
-                                                            <p className="text-xl font-black" style={{ color: themeColor }}>{formatPrice(service.price)}</p>
-                                                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wide bg-slate-950/50 px-1.5 py-0.5 rounded inline-block">Per 1000</p>
-                                                        </div>
-                                                        
-                                                        <button 
-                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-lg mt-1 ${selectedService?.id === service.id ? 'text-white scale-110' : 'bg-slate-800 text-slate-600 group-hover:text-white'}`}
-                                                            style={{ backgroundColor: selectedService?.id === service.id ? themeColor : undefined }}
-                                                        >
-                                                            {selectedService?.id === service.id ? <i className="fa-solid fa-check"></i> : <i className="fa-solid fa-plus"></i>}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                            {filteredServices.length === 0 && (
-                                <div className="flex flex-col items-center justify-center h-64 text-slate-500">
-                                    <i className="fa-solid fa-globe text-3xl mb-3 opacity-20"></i>
-                                    <p className="text-xs font-bold uppercase">No global services found</p>
-                                    <p className="text-[10px] mt-1">Try adjusting your region or search filters.</p>
+                            {availableTypes.length > 1 && (
+                                <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2">
+                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest self-center mr-2">Layer:</span>
+                                    {availableTypes.map(t => (
+                                        <button
+                                            key={t}
+                                            onClick={() => setActiveType(t)}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                                activeType === t 
+                                                ? 'bg-slate-800 text-white border-white/20 shadow-lg' 
+                                                : 'bg-transparent border-transparent text-slate-500 hover:text-slate-300'
+                                            }`}
+                                            style={{ 
+                                                borderColor: activeType === t ? themeColor : undefined,
+                                                color: activeType === t ? themeColor : undefined
+                                            }}
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Order Form */}
-                <div className="lg:col-span-5 xl:col-span-4 flex flex-col">
-                    <div className="glass-panel p-6 rounded-3xl border-slate-700/30 bg-gradient-to-br from-slate-900/80 to-transparent shadow-2xl sticky top-24" style={{ borderColor: selectedService ? `${themeColor}40` : undefined }}>
-                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2 text-white uppercase tracking-tighter">
-                            <i className="fa-solid fa-cart-plus" style={{ color: themeColor }}></i> Order Terminal
-                        </h3>
-                        
-                        {selectedService ? (
-                        <div className="space-y-5 animate-in fade-in duration-300">
-                            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full -mr-8 -mt-8 opacity-20 transition-colors" style={{ backgroundColor: themeColor }}></div>
-                                <div className="flex justify-between items-start mb-3 relative z-10">
-                                    <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        Service Active
+                {/* Service Nodes List */}
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden border-slate-700/50 shadow-2xl flex flex-col h-[700px]">
+                    <div className="p-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10 flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/5 shadow-inner icon-4d">
+                                {!searchQuery ? <i className={activeCategoryData.icon} style={{ color: themeColor }}></i> : <i className="fa-solid fa-search text-slate-500"></i>}
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                                    {searchQuery ? 'Cross-Network Search' : `${activeCategoryData.category} Core Nodes`}
+                                </h3>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase">{filteredServices.length} Active Endpoints</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar scroll-smooth">
+                        {Object.entries(groupedDisplayServices).map(([groupName, items]) => (
+                            <div key={groupName} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center gap-4 mb-5 sticky top-0 bg-slate-900/80 backdrop-blur-sm py-2 z-[5]">
+                                    <span className="text-[11px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full border border-white/5 bg-slate-800 text-slate-300 shadow-xl">
+                                        {groupName}
                                     </span>
-                                    <span className="text-[9px] font-mono px-2 py-1 rounded border" style={{ color: themeColor, borderColor: `${themeColor}30`, backgroundColor: `${themeColor}10` }}>#{selectedService.id}</span>
+                                    <div className="h-px bg-slate-800 flex-1"></div>
                                 </div>
-                                <p className="text-sm font-bold leading-snug text-white line-clamp-2 relative z-10 mb-2">{selectedService.name}</p>
-                                <div className="flex flex-wrap gap-2 relative z-10">
-                                    <span className="text-[9px] bg-black/40 px-2 py-1 rounded text-slate-400 border border-white/5 uppercase font-bold"><i className="fa-solid fa-server mr-1"></i> {selectedService.provider}</span>
-                                    <span className="text-[9px] bg-black/40 px-2 py-1 rounded text-slate-400 border border-white/5 uppercase font-bold"><i className="fa-solid fa-earth-americas mr-1"></i> {selectedService.region}</span>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {(items as any[]).map((service: any) => (
+                                        <div 
+                                            key={service.id}
+                                            onClick={() => { setSelectedService(service); setQuantity(Math.max(1000, service.min)); }}
+                                            className={`p-6 rounded-3xl cursor-pointer transition-all border-2 relative overflow-hidden group hover:scale-[1.01] active:scale-[0.99] ${
+                                                selectedService?.id === service.id 
+                                                ? 'bg-slate-800 border-indigo-500/50 shadow-2xl' 
+                                                : 'bg-slate-900/40 border-slate-800 hover:border-slate-600'
+                                            }`}
+                                        >
+                                            {/* Selection Glow */}
+                                            {selectedService?.id === service.id && (
+                                                <div className="absolute top-0 right-0 p-2">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]"></div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex flex-col md:flex-row gap-6 items-center">
+                                                <div className="flex-1 w-full space-y-4">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span className="text-[9px] font-mono font-black text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded border border-indigo-400/20">#{service.id}</span>
+                                                        <span className="text-[9px] font-black text-slate-300 bg-slate-800 px-2 py-1 rounded uppercase tracking-widest">{service.provider}</span>
+                                                        {service.speed === 'Instant' && <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded uppercase tracking-widest flex items-center gap-1"><i className="fa-solid fa-bolt"></i> Instant</span>}
+                                                    </div>
+                                                    
+                                                    <h4 className="text-base font-black text-white leading-tight font-heading">{service.name}</h4>
+                                                    
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                        {[
+                                                            { label: 'Speed', val: service.speed, icon: 'fa-gauge-high', color: 'text-indigo-400' },
+                                                            { label: 'Wait', val: service.avgTime, icon: 'fa-hourglass-start', color: 'text-blue-400' },
+                                                            { label: 'Refill', val: service.guarantee, icon: 'fa-shield-check', color: 'text-emerald-400' },
+                                                            { label: 'Capacity', val: `${service.min}-${service.max / 1000}k`, icon: 'fa-layer-group', color: 'text-slate-400' }
+                                                        ].map((spec, i) => (
+                                                            <div key={i} className="bg-black/40 p-2 rounded-xl border border-white/5 flex flex-col items-center text-center justify-center">
+                                                                <i className={`fa-solid ${spec.icon} text-[10px] ${spec.color} mb-1.5`}></i>
+                                                                <p className="text-[9px] font-black text-white truncate max-w-full uppercase">{spec.val}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-40 gap-4 md:gap-2 md:pl-6 md:border-l border-slate-800">
+                                                    <div className="text-left md:text-right">
+                                                        <p className="text-3xl font-black cinematic-shine leading-none mb-1">{formatPrice(service.price)}</p>
+                                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">Rate / 1k</p>
+                                                    </div>
+                                                    
+                                                    <button 
+                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl icon-4d ${selectedService?.id === service.id ? 'bg-indigo-600 text-white scale-110' : 'bg-slate-800 text-slate-500 group-hover:text-white group-hover:bg-slate-700'}`}
+                                                    >
+                                                        <i className={`fa-solid ${selectedService?.id === service.id ? 'fa-check-double' : 'fa-plus'} text-lg`}></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
 
+            {/* Right: Order Console */}
+            <div className="lg:col-span-4 space-y-6">
+                <div className="glass-panel p-8 rounded-[3rem] border-indigo-500/20 bg-gradient-to-br from-indigo-900/10 to-transparent sticky top-24 shadow-2xl overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-3xl -mr-32 -mt-32"></div>
+                    
+                    <h3 className="text-xl font-black mb-8 flex items-center gap-3 text-white uppercase tracking-tighter relative z-10">
+                        <i className="fa-solid fa-terminal text-indigo-500"></i> Provision Console
+                    </h3>
+                    
+                    {selectedService ? (
+                    <div className="space-y-8 animate-in slide-in-from-right-8 duration-500 relative z-10">
+                        <div className="p-6 bg-slate-900/90 border border-white/5 rounded-3xl shadow-inner group-hover:border-indigo-500/30 transition-colors">
+                            <div className="flex justify-between items-start mb-4">
+                                <span className="text-[10px] text-indigo-400 font-black uppercase tracking-widest flex items-center gap-2">
+                                    <i className="fa-solid fa-satellite-dish animate-pulse"></i> Ready for Sync
+                                </span>
+                                <span className="text-[10px] font-mono text-slate-500">Endpoint #{selectedService.id}</span>
+                            </div>
+                            <p className="text-base font-black text-white leading-tight mb-4">{selectedService.name}</p>
+                            <div className="flex flex-wrap gap-2">
+                                <div className="px-3 py-1 bg-black/40 rounded-lg text-[10px] font-bold text-slate-400 border border-white/5 flex items-center gap-1.5"><i className="fa-solid fa-earth-americas text-[8px]"></i> {selectedService.region}</div>
+                                <div className="px-3 py-1 bg-black/40 rounded-lg text-[10px] font-bold text-slate-400 border border-white/5 flex items-center gap-1.5"><i className="fa-solid fa-network-wired text-[8px]"></i> {selectedService.provider}</div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Target Link / URL</label>
-                                <div className="relative group">
-                                    <i className="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors text-xs"></i>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Destination URL</label>
+                                <div className="relative group/input">
+                                    <i className="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-indigo-400 transition-colors text-xs"></i>
                                     <input 
                                         type="text"
                                         value={link}
                                         onChange={(e) => setLink(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-xs font-medium text-white shadow-inner focus:outline-none focus:border-opacity-100 transition-all"
-                                        style={{ outlineColor: themeColor }}
+                                        placeholder="https://social.link/node..."
+                                        className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl pl-10 pr-4 py-4 text-xs font-bold text-white focus:ring-1 focus:ring-indigo-500 shadow-inner transition-all"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between items-end">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Quantity</label>
-                                    <span className="text-[9px] font-bold text-slate-600 uppercase bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Limit: {selectedService.min} - {selectedService.max.toLocaleString()}</span>
+                                <div className="flex justify-between items-end mb-1">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Quantum Quantity</label>
+                                    <span className="text-[9px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">Min {selectedService.min}</span>
                                 </div>
-                                <div className="relative group">
-                                    <i className="fa-solid fa-layer-group absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-white transition-colors text-xs"></i>
+                                <div className="relative group/input">
+                                    <i className="fa-solid fa-cubes-stacked absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-indigo-400 transition-colors text-xs"></i>
                                     <input 
                                         type="number"
                                         min={selectedService.min}
                                         max={selectedService.max}
                                         value={quantity}
                                         onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-                                        className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-white shadow-inner focus:outline-none focus:border-opacity-100 transition-all"
-                                        style={{ outlineColor: themeColor }}
+                                        className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl pl-10 pr-4 py-4 text-sm font-black text-white focus:ring-1 focus:ring-indigo-500 shadow-inner transition-all"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${dripFeed ? '' : 'bg-slate-700'}`} style={{ backgroundColor: dripFeed ? themeColor : undefined }} onClick={() => setDripFeed(!dripFeed)}>
-                                        <div className={`w-2 h-2 bg-white rounded-full absolute top-1 transition-all ${dripFeed ? 'left-5' : 'left-1'}`}></div>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Drip-Feed Mode</span>
+                            <button 
+                                onClick={() => setDripFeed(!dripFeed)}
+                                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${dripFeed ? 'bg-indigo-600/10 border-indigo-500/50' : 'bg-slate-900/30 border-slate-800 hover:border-slate-700'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <i className={`fa-solid fa-clock-rotate-left ${dripFeed ? 'text-indigo-400' : 'text-slate-500'}`}></i>
+                                    <span className={`text-[10px] font-black uppercase ${dripFeed ? 'text-white' : 'text-slate-500'}`}>Drip-Feed Deployment</span>
                                 </div>
-                                {dripFeed && <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: themeColor }}>Active</span>}
-                            </div>
+                                <div className={`w-10 h-5 rounded-full relative p-1 transition-colors ${dripFeed ? 'bg-indigo-600' : 'bg-slate-800'}`}>
+                                    <div className={`w-3 h-3 bg-white rounded-full transition-all ${dripFeed ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                </div>
+                            </button>
+                        </div>
 
-                            <div className="pt-4 border-t border-slate-800">
-                                <div className="flex justify-between items-end mb-4 px-1">
-                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Total Charge</span>
-                                    <div className="text-right">
-                                        <span className="text-3xl font-black text-white tracking-tight">{totalPrice}</span>
-                                    </div>
+                        <div className="pt-8 border-t border-slate-800">
+                            <div className="flex flex-col items-center text-center mb-8">
+                                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-2">Total Project Cost</span>
+                                <h3 className="text-5xl font-black text-white tracking-tighter cinematic-shine">{formatPrice(totalPrice)}</h3>
+                                <p className="text-[9px] text-slate-600 font-bold uppercase mt-1">Inclusive of Cross-Node Logic Fees</p>
+                            </div>
+                            
+                            <button 
+                                onClick={handlePlaceOrder}
+                                disabled={!link || quantity < selectedService.min}
+                                className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-[0_10px_40px_rgba(79,70,229,0.4)] hover:shadow-[0_10px_60px_rgba(79,70,229,0.6)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 group/btn btn-3d disabled:opacity-50 disabled:grayscale"
+                            >
+                                <i className="fa-solid fa-rocket-launch text-lg group-hover/btn:-translate-y-1 transition-transform"></i>
+                                Authorize Provision
+                            </button>
+                            
+                            <div className="mt-6 flex flex-col gap-3">
+                                <div className="flex items-center gap-3 text-[10px] text-slate-500 font-bold uppercase">
+                                    <i className="fa-solid fa-shield-halved text-emerald-500"></i>
+                                    <span>Military-grade order encryption</span>
                                 </div>
-                                <button 
-                                    onClick={handlePlaceOrder}
-                                    className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest text-white shadow-xl transition-all flex items-center justify-center gap-3 group relative overflow-hidden hover:brightness-110"
-                                    style={{ backgroundColor: themeColor, boxShadow: `0 10px 20px -5px ${themeColor}40` }}
-                                >
-                                    <span className="relative z-10 flex items-center gap-2">
-                                        <i className="fa-solid fa-rocket group-hover:-translate-y-1 transition-transform"></i>
-                                        Confirm Order
-                                    </span>
-                                </button>
+                                <div className="flex items-center gap-3 text-[10px] text-slate-500 font-bold uppercase">
+                                    <i className="fa-solid fa-microchip text-indigo-400"></i>
+                                    <span>Gemini 3 Pro Route Optimization</span>
+                                </div>
                             </div>
                         </div>
-                        ) : (
-                        <div className="py-20 text-center space-y-6">
-                            <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto border border-dashed border-slate-700 animate-pulse">
-                                <i className="fa-solid fa-arrow-left text-slate-600 text-3xl"></i>
-                            </div>
-                            <div>
-                                <p className="text-sm text-white font-bold uppercase tracking-wide">Select a Service</p>
-                                <p className="text-[10px] text-slate-500 mt-1 max-w-[200px] mx-auto">Choose a node from the global list to configure your order.</p>
-                            </div>
-                        </div>
-                        )}
                     </div>
+                    ) : (
+                    <div className="py-24 text-center space-y-8 relative z-10">
+                        <div className="w-24 h-24 bg-slate-800/40 rounded-[2.5rem] flex items-center justify-center mx-auto border-2 border-dashed border-slate-700 animate-pulse">
+                            <i className="fa-solid fa-arrow-left text-slate-800 text-4xl"></i>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-black text-slate-600 uppercase tracking-widest italic">Signal Search Active</p>
+                            <p className="text-[10px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">Select a service node from the deployment grid to initialize the provision console.</p>
+                        </div>
+                    </div>
+                    )}
                 </div>
             </div>
-        </>
+        </div>
       )}
 
       {viewMode === 'mass' && (
-          <div className="glass-panel p-8 rounded-3xl border-slate-700/50 max-w-4xl mx-auto w-full animate-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl">
-                      <i className="fa-solid fa-layer-group"></i>
+          <div className="glass-panel p-12 rounded-[3rem] border-slate-700/50 max-w-4xl mx-auto w-full animate-in slide-in-from-bottom-8 duration-500 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                <i className="fa-solid fa-layer-group text-9xl text-white"></i>
+              </div>
+              <div className="flex items-center gap-6 mb-10 relative z-10">
+                  <div className="w-16 h-16 bg-indigo-600 rounded-[2rem] flex items-center justify-center text-white text-2xl shadow-2xl shadow-indigo-600/30 icon-4d">
+                      <i className="fa-solid fa-cubes"></i>
                   </div>
                   <div>
-                      <h3 className="text-xl font-black text-white uppercase tracking-tighter">Mass Order Processing</h3>
-                      <p className="text-xs text-slate-400">Execute multiple orders simultaneously. One order per line.</p>
+                      <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Bulk Batch Execution</h3>
+                      <p className="text-sm text-slate-400">Mass deployment across multiple endpoints using structured input.</p>
                   </div>
               </div>
 
-              <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Format Guide</p>
-                  <p className="font-mono text-sm text-emerald-400 bg-black/50 p-2 rounded border border-slate-800/50">
-                      service_id | link | quantity
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-2">Example: 1024 | https://instagram.com/p/Cx... | 1000</p>
+              <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 mb-8 relative z-10 shadow-inner">
+                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3">Protocol syntax</p>
+                  <code className="block font-mono text-sm text-emerald-400 bg-black/40 p-4 rounded-xl border border-white/5">
+                      service_id | destination_link | volume_quantity
+                  </code>
+                  <p className="text-[10px] text-slate-500 mt-4 uppercase font-bold tracking-widest"><i className="fa-solid fa-info-circle mr-1"></i> Example: 1024 | https://node.com/p/x1 | 5000</p>
               </div>
 
               <textarea 
                   value={massOrderContent}
                   onChange={e => setMassOrderContent(e.target.value)}
-                  placeholder={`1024 | https://link.com/post1 | 1000\n1024 | https://link.com/post2 | 500\n4401 | https://youtube.com/watch?v=... | 2000`}
-                  className="w-full h-64 bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm font-mono text-slate-300 focus:ring-1 focus:ring-indigo-500 resize-none leading-relaxed"
+                  placeholder={`1024 | https://instagram.com/p/C... | 5000\n4401 | https://youtube.com/watch?v=... | 10000`}
+                  className="w-full h-80 bg-slate-900/50 border border-slate-800 rounded-[2rem] p-8 text-sm font-mono text-slate-300 focus:ring-1 focus:ring-indigo-500 resize-none leading-relaxed shadow-inner mb-8"
               ></textarea>
 
-              <div className="flex justify-end mt-6">
-                  <button onClick={handlePlaceMassOrder} className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/20">
-                      Submit Bulk Order
+              <div className="flex justify-end relative z-10">
+                  <button 
+                    onClick={() => {
+                        const count = massOrderContent.split('\n').filter(l => l.trim()).length;
+                        if(!count) return;
+                        onBuy({ name: `Bulk Batch (${count} lines)`, price: count * 1.25 });
+                        alert(`Batch Protocol Accepted: ${count} deployments sequenced.`);
+                    }} 
+                    className="px-12 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-indigo-600/30 btn-3d transition-all"
+                  >
+                      Initiate Batch Processing
                   </button>
               </div>
           </div>
       )}
 
       {viewMode === 'history' && (
-          <div className="glass-panel p-6 rounded-3xl border-slate-700/50 animate-in slide-in-from-bottom-4 duration-500 flex flex-col h-[600px]">
-              <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-black text-white uppercase tracking-tighter">Order History</h3>
+          <div className="glass-panel p-8 rounded-[3rem] border-slate-700/50 animate-in slide-in-from-bottom-8 duration-500 flex flex-col h-[700px] shadow-2xl">
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-indigo-400 border border-white/5 shadow-inner">
+                        <i className="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tighter">Active Node Log</h3>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase">Tracking real-time deployment status</p>
+                    </div>
+                  </div>
                   <div className="flex gap-2">
-                      <button className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-lg text-[10px] font-bold uppercase hover:text-white">Export CSV</button>
+                      <button className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all">Export Protocol Log</button>
+                      <button className="w-10 h-10 rounded-xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all"><i className="fa-solid fa-rotate"></i></button>
                   </div>
               </div>
               
-              <div className="overflow-auto flex-1 no-scrollbar rounded-xl border border-slate-800">
+              <div className="overflow-auto flex-1 no-scrollbar rounded-[2rem] border border-slate-800 shadow-inner">
                   <table className="w-full text-left border-collapse">
-                      <thead className="bg-slate-900/80 sticky top-0 z-10 backdrop-blur-sm">
+                      <thead className="bg-slate-900 sticky top-0 z-10 border-b border-slate-800">
                           <tr>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">ID</th>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date</th>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Service</th>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Link</th>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Charge</th>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Qty</th>
-                              <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Status</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Protocol ID</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Target Service</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Vector Link</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Charge</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Quantity</th>
+                              <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Node Status</th>
                           </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody className="divide-y divide-slate-800/50">
                           {orderHistory.map(order => (
-                              <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
-                                  <td className="p-4 text-xs font-mono text-slate-400">#{order.id}</td>
-                                  <td className="p-4 text-xs font-bold text-slate-500">{order.date}</td>
-                                  <td className="p-4 text-xs font-bold text-white">{order.service}</td>
-                                  <td className="p-4">
-                                      <a href={order.link} target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 text-xs truncate block max-w-[150px]"><i className="fa-solid fa-link mr-1"></i> Link</a>
+                              <tr key={order.id} className="hover:bg-indigo-600/5 transition-all group">
+                                  <td className="p-6 font-mono text-[10px] text-slate-500">#N-{order.id}</td>
+                                  <td className="p-6 text-xs font-black text-slate-400 uppercase">{order.date}</td>
+                                  <td className="p-6 text-sm font-black text-white group-hover:text-indigo-400 transition-colors">{order.service}</td>
+                                  <td className="p-6">
+                                      <a href={order.link} target="_blank" rel="noreferrer" className="text-indigo-500 hover:text-indigo-300 text-xs font-bold truncate block max-w-[200px] flex items-center gap-2"><i className="fa-solid fa-external-link text-[10px]"></i> View Vector</a>
                                   </td>
-                                  <td className="p-4 text-xs font-bold text-slate-300">{formatPrice(order.charge)}</td>
-                                  <td className="p-4 text-xs font-bold text-slate-400">{order.quantity}</td>
-                                  <td className="p-4 text-right">
-                                      <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wide ${getStatusColor(order.status)}`}>
+                                  <td className="p-6 text-sm font-black text-slate-200">{formatPrice(order.charge)}</td>
+                                  <td className="p-6 text-sm font-black text-slate-400 tracking-tighter">{order.quantity.toLocaleString()}</td>
+                                  <td className="p-6 text-right">
+                                      <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg ${getStatusColor(order.status)}`}>
                                           {order.status}
                                       </span>
                                   </td>
