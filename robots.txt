@@ -1,0 +1,9 @@
+
+User-agent: *
+Allow: /
+Allow: /blog/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /api/
+
+Sitemap: https://social-stack-marketing.vercel.app/sitemap.xml

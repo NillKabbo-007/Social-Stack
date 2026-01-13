@@ -1,0 +1,9 @@
+{
+  "name": "Social Stack",
+  "description": "The Ultimate All-in-One Marketing Command Center. Simplify Your Socials. Stack Your Success.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
