@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { User, MediaItem } from '../types';
 import { GLOBAL_CURRENCIES, GLOBAL_LANGUAGES, TRANSLATIONS } from '../constants';
 import FileLibrary from './FileLibrary';
@@ -24,6 +24,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
   const [email, setEmail] = useState(user.email);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [languageSearch, setLanguageSearch] = useState('');
   const languageDropdownRef = useRef<HTMLDivElement>(null);
 
   const t = TRANSLATIONS[user.language || 'en-US'] || TRANSLATIONS['en-US'];
@@ -47,6 +48,13 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
       alert("System profile updated. All nodes synchronized.");
     }, 1000);
   };
+
+  const filteredLanguages = useMemo(() => {
+    return GLOBAL_LANGUAGES.filter(lang => 
+      lang.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
+      lang.region.toLowerCase().includes(languageSearch.toLowerCase())
+    );
+  }, [languageSearch]);
 
   const currentLang = GLOBAL_LANGUAGES.find(l => l.code === (user.language || 'en-US')) || GLOBAL_LANGUAGES[0];
 
@@ -146,10 +154,16 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
                   {isLanguageOpen && (
                     <div className="absolute top-full left-0 right-0 mt-3 bg-slate-900 border border-slate-700 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50 overflow-hidden max-h-80 overflow-y-auto no-scrollbar animate-in zoom-in-95 duration-200 backdrop-blur-xl">
                         <div className="p-4 bg-slate-950/50 border-b border-white/5">
-                            <input type="text" placeholder="Filter languages..." className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-[10px] font-bold text-white uppercase outline-none focus:ring-1 focus:ring-indigo-500" />
+                            <input 
+                              type="text" 
+                              value={languageSearch} 
+                              onChange={(e) => setLanguageSearch(e.target.value)} 
+                              placeholder="Filter languages..." 
+                              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-[10px] font-bold text-white uppercase outline-none focus:ring-1 focus:ring-indigo-500" 
+                            />
                         </div>
                         <div className="p-2">
-                            {GLOBAL_LANGUAGES.map(lang => (
+                            {filteredLanguages.length > 0 ? filteredLanguages.map(lang => (
                                 <button key={lang.code} type="button" onClick={() => {onUpdateUser({ language: lang.code }); setIsLanguageOpen(false);}} className={`w-full px-5 py-4 rounded-xl text-left text-[11px] font-black uppercase transition-all flex items-center justify-between group ${user.language === lang.code ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
                                     <div className="flex items-center gap-4">
                                         <span className="text-xl">{lang.flag}</span>
@@ -157,7 +171,11 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, mediaLibrary, o
                                     </div>
                                     {user.language === lang.code && <i className="fa-solid fa-circle-check text-xs"></i>}
                                 </button>
-                            ))}
+                            )) : (
+                              <div className="p-4 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                                No languages found
+                              </div>
+                            )}
                         </div>
                     </div>
                   )}

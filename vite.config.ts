@@ -11,10 +11,7 @@ export default defineConfig(({ mode }) => {
     define: {
       // Polyfill process.env for the Google GenAI SDK and other usages
       'process.env': {
-        API_KEY: env.API_KEY || env.GEMINI_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY,
-        GEMINI_API_KEY: env.GEMINI_API_KEY || env.API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY,
-        VITE_GEMINI_API_KEY: env.VITE_GEMINI_API_KEY,
-        VITE_API_KEY: env.VITE_API_KEY
+        API_KEY: env.API_KEY || process.env.API_KEY
       }
     }
   }

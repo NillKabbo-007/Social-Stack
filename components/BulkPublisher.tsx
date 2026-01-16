@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { PLATFORMS } from '../constants';
-import { generateViralSuggestions, generateSocialPost, generateAIImage } from '../services/geminiService';
+import { generateViralSuggestions, generateSocialPost, generateAIImage, generateVideoScript } from '../services/geminiService';
 import { MediaItem } from '../types';
 
 interface BulkPublisherProps {
@@ -104,7 +104,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'upload' | 'ai'>('upload');
+  const [mediaTab, setMediaTab] = useState<'upload' | 'ai' | 'script'>('upload');
 
   // AI Laboratory State
   const [imagePrompt, setImagePrompt] = useState('');
@@ -112,6 +112,13 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [artStyle, setArtStyle] = useState('Photorealistic');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  // Script Generator State
+  const [scriptTopic, setScriptTopic] = useState('');
+  const [scriptDuration, setScriptDuration] = useState('30s');
+  const [scriptPlatform, setScriptPlatform] = useState('TikTok');
+  const [generatedScript, setGeneratedScript] = useState<any>(null);
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
 
   // Sorting & Multi-select State
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'type'>('newest');
@@ -172,6 +179,14 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
     setIsGeneratingImage(false);
   };
 
+  const handleGenerateScript = async () => {
+    if (!scriptTopic) return;
+    setIsGeneratingScript(true);
+    const script = await generateVideoScript(scriptTopic, tone, scriptDuration, scriptPlatform);
+    setGeneratedScript(script);
+    setIsGeneratingScript(false);
+  };
+
   return (
     <div className="space-y-10 animate-in fade-in duration-500 pb-20 select-none">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
@@ -198,9 +213,10 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                 <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/5 blur-3xl rounded-full"></div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
                     <h3 className="text-[10px] font-tech text-slate-500 uppercase tracking-[0.2em]">Asset Laboratory</h3>
-                    <div className="flex gap-4">
-                        <button onClick={() => setMediaTab('upload')} className={`text-[9px] font-black uppercase transition-all ${mediaTab === 'upload' ? 'text-indigo-400' : 'text-slate-600'}`}>Vault</button>
-                        <button onClick={() => setMediaTab('ai')} className={`text-[9px] font-black uppercase transition-all ${mediaTab === 'ai' ? 'text-indigo-400 underline underline-offset-8' : 'text-slate-600'}`}>Creator</button>
+                    <div className="flex gap-2">
+                        <button onClick={() => setMediaTab('upload')} className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTab === 'upload' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Vault</button>
+                        <button onClick={() => setMediaTab('ai')} className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTab === 'ai' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Creator</button>
+                        <button onClick={() => setMediaTab('script')} className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTab === 'script' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Script</button>
                     </div>
                 </div>
 
@@ -238,6 +254,65 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                             {isGeneratingImage ? <i className="fa-solid fa-dna fa-spin mr-2"></i> : <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>}
                             Synthesize Image
                         </button>
+                    </div>
+                ) : mediaTab === 'script' ? (
+                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                        {generatedScript ? (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl max-h-[300px] overflow-y-auto no-scrollbar font-sans">
+                                    <h4 className="font-bold text-white text-sm mb-3">{generatedScript.title}</h4>
+                                    <div className="mb-4 p-3 bg-indigo-600/10 border border-indigo-500/20 rounded-xl">
+                                        <span className="text-[8px] font-tech text-indigo-400 uppercase font-black">HOOK</span>
+                                        <p className="text-xs text-white mt-1">{generatedScript.hook}</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {generatedScript.script?.map((scene: any, i: number) => (
+                                            <div key={i} className="flex gap-3">
+                                                <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-[10px] text-slate-400 flex-shrink-0 font-black">{i+1}</div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-emerald-400 font-black uppercase"><i className="fa-regular fa-eye mr-1"></i> {scene.visual}</p>
+                                                    <p className="text-xs text-slate-300">"{scene.audio}"</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-4 p-3 bg-slate-900 border border-slate-800 rounded-xl">
+                                        <span className="text-[8px] font-tech text-slate-500 uppercase font-black">Call to Action</span>
+                                        <p className="text-xs text-white mt-1">{generatedScript.cta}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setGeneratedScript(null)} className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Create New Script</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-tech text-slate-500 uppercase tracking-widest ml-1">Topic</label>
+                                    <textarea value={scriptTopic} onChange={e => setScriptTopic(e.target.value)} placeholder="e.g. 3 SaaS Marketing Tips" className="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 text-xs font-medium text-white h-24 focus:ring-1 focus:ring-indigo-500 resize-none shadow-inner" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-tech text-slate-500 uppercase tracking-widest ml-1">Platform</label>
+                                        <select value={scriptPlatform} onChange={e => setScriptPlatform(e.target.value)} className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-[10px] font-bold text-slate-300 outline-none">
+                                            <option>TikTok</option>
+                                            <option>Instagram Reels</option>
+                                            <option>YouTube Shorts</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-tech text-slate-500 uppercase tracking-widest ml-1">Duration</label>
+                                        <select value={scriptDuration} onChange={e => setScriptDuration(e.target.value)} className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-[10px] font-bold text-slate-300 outline-none">
+                                            <option value="15s">15 Seconds</option>
+                                            <option value="30s">30 Seconds</option>
+                                            <option value="60s">60 Seconds</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button onClick={handleGenerateScript} disabled={isGeneratingScript || !scriptTopic} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-display font-black text-[11px] uppercase tracking-[0.2em] shadow-xl transition-all btn-3d disabled:opacity-50">
+                                    {isGeneratingScript ? <i className="fa-solid fa-scroll fa-spin mr-2"></i> : <i className="fa-solid fa-scroll mr-2"></i>}
+                                    Generate Script
+                                </button>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="space-y-4">
