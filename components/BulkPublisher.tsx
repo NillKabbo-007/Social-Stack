@@ -1,8 +1,16 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PLATFORMS } from '../constants';
 import { generateViralSuggestions, generateSocialPost, generateAIImage, generateVideoScript } from '../services/geminiService';
 import { MediaItem } from '../types';
+
+interface DraftPost {
+    id: string;
+    platformId: string;
+    content: string;
+    mediaUrl?: string;
+    timestamp: string;
+}
 
 interface BulkPublisherProps {
   mediaLibrary: MediaItem[];
@@ -10,11 +18,19 @@ interface BulkPublisherProps {
   onDeleteMedia: (id: string) => void;
 }
 
-const PlatformPreview: React.FC<{ post: any; media: MediaItem | null }> = ({ post, media }) => {
+const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraft: (platformId: string, content: string) => void }> = ({ post, media, onSaveDraft }) => {
     const isX = post.platformId === 'twitter' || post.platformId === 'x';
     const charCount = post.content.length;
     const xLimit = 280;
     const isOverLimit = isX && charCount > xLimit;
+
+    const [isSaved, setIsSaved] = useState(false);
+
+    const handleSave = () => {
+        onSaveDraft(post.platformId, post.content);
+        setIsSaved(true);
+        setTimeout(() => setIsSaved(false), 2000);
+    };
 
     if (isX) {
         return (
@@ -33,9 +49,12 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null }> = ({ pos
                             <span className="font-bold truncate text-white">Social Stack</span>
                             <i className="fa-solid fa-circle-check text-[#1d9bf0] text-[10px]"></i>
                             <span className="text-slate-500 font-normal truncate">@socialstack · 1m</span>
-                            <div className="ml-auto text-slate-500 hover:text-[#1d9bf0] cursor-pointer">
-                                <i className="fa-solid fa-ellipsis"></i>
-                            </div>
+                            <button 
+                                onClick={handleSave}
+                                className={`ml-auto text-xs font-black uppercase tracking-tighter transition-colors ${isSaved ? 'text-emerald-400' : 'text-slate-500 hover:text-[#1d9bf0]'}`}
+                            >
+                                {isSaved ? <i className="fa-solid fa-check"></i> : <i className="fa-solid fa-bookmark"></i>}
+                            </button>
                         </div>
                         <div className="mt-1 text-[14px] whitespace-pre-wrap leading-tight text-slate-100 font-normal tracking-tight">
                             {post.content}
@@ -88,7 +107,15 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null }> = ({ pos
         <div className="glass-panel p-5 rounded-2xl border border-white/5 shadow-xl w-full">
             <div className="flex items-center justify-between mb-4">
                 <div className="px-3 py-1 bg-indigo-600/20 text-indigo-400 text-[8px] font-tech uppercase rounded-lg border border-indigo-500/20">{post.platformId} Channel</div>
-                <span className="text-[10px] font-tech text-slate-500">{charCount} chars</span>
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-tech text-slate-500">{charCount} chars</span>
+                    <button 
+                        onClick={handleSave}
+                        className={`text-[10px] font-black uppercase tracking-tighter transition-colors ${isSaved ? 'text-emerald-400' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        {isSaved ? <i className="fa-solid fa-check"></i> : <i className="fa-solid fa-bookmark"></i>}
+                    </button>
+                </div>
             </div>
             <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap mb-4 font-medium">{post.content}</div>
             {media && <div className="rounded-xl overflow-hidden shadow-2xl border border-white/10 aspect-video bg-slate-900"><img src={media.url} className="w-full h-full object-cover" /></div>}
@@ -104,7 +131,17 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'upload' | 'ai' | 'script'>('upload');
+  const [mediaTab, setMediaTab] = useState<'upload' | 'ai' | 'script' | 'drafts'>('upload');
+
+  // Drafts State
+  const [drafts, setDrafts] = useState<DraftPost[]>(() => {
+    const saved = localStorage.getItem('socialstack_drafts');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('socialstack_drafts', JSON.stringify(drafts));
+  }, [drafts]);
 
   // AI Laboratory State
   const [imagePrompt, setImagePrompt] = useState('');
@@ -161,6 +198,34 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
     setIsGeneratingPost(false);
   };
 
+  const handleSaveDraft = (platformId: string, content: string) => {
+    const newDraft: DraftPost = {
+        id: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        platformId,
+        content,
+        mediaUrl: selectedMedia?.url,
+        timestamp: new Date().toLocaleString()
+    };
+    setDrafts(prev => [newDraft, ...prev]);
+  };
+
+  const handleDeleteDraft = (id: string) => {
+    if (confirm('Authorize draft deletion?')) {
+        setDrafts(prev => prev.filter(d => d.id !== id));
+    }
+  };
+
+  const handleLoadDraft = (draft: DraftPost) => {
+    setPrompt(draft.content);
+    // Find media in library if possible
+    if (draft.mediaUrl) {
+        const media = mediaLibrary.find(m => m.url === draft.mediaUrl);
+        if (media) setSelectedMedia(media);
+    }
+    setSelectedPlatforms([draft.platformId]);
+    alert(`Draft loaded into composer for ${draft.platformId.toUpperCase()}.`);
+  };
+
   const handleGenerateImage = async () => {
     if (!imagePrompt) return;
     setIsGeneratingImage(true);
@@ -194,12 +259,12 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
           <h2 className="text-4xl font-display font-black text-white uppercase tracking-tighter">Broadcaster Core</h2>
           <p className="text-slate-400 font-medium">Provision and sync high-fidelity content across the global graph.</p>
         </div>
-        <div className="flex bg-slate-900 border border-white/5 p-1.5 rounded-2xl shadow-2xl">
+        <div className="flex bg-slate-900 border border-white/5 p-1.5 rounded-2xl shadow-2xl overflow-x-auto no-scrollbar max-w-full">
             {PLATFORMS.filter(p => p.connected).map(p => (
                 <button 
                     key={p.id} 
                     onClick={() => setSelectedPlatforms(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id])}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${selectedPlatforms.includes(p.id) ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-600 hover:text-slate-300'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0 ${selectedPlatforms.includes(p.id) ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-600 hover:text-slate-300'}`}
                 >
                     <i className={p.icon}></i>
                 </button>
@@ -213,14 +278,42 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                 <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/5 blur-3xl rounded-full"></div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
                     <h3 className="text-[10px] font-tech text-slate-500 uppercase tracking-[0.2em]">Asset Laboratory</h3>
-                    <div className="flex gap-2">
-                        <button onClick={() => setMediaTab('upload')} className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTab === 'upload' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Vault</button>
-                        <button onClick={() => setMediaTab('ai')} className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTab === 'ai' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Creator</button>
-                        <button onClick={() => setMediaTab('script')} className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTab === 'script' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Script</button>
+                    <div className="flex gap-1 overflow-x-auto no-scrollbar pb-1">
+                        <button onClick={() => setMediaTab('upload')} className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all shrink-0 ${mediaTab === 'upload' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Vault</button>
+                        <button onClick={() => setMediaTab('ai')} className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all shrink-0 ${mediaTab === 'ai' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Creator</button>
+                        <button onClick={() => setMediaTab('script')} className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all shrink-0 ${mediaTab === 'script' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Script</button>
+                        <button onClick={() => setMediaTab('drafts')} className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all shrink-0 ${mediaTab === 'drafts' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}>Drafts</button>
                     </div>
                 </div>
 
-                {mediaTab === 'ai' ? (
+                {mediaTab === 'drafts' ? (
+                    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 max-h-[500px] overflow-y-auto no-scrollbar">
+                        {drafts.length > 0 ? drafts.map(draft => (
+                            <div key={draft.id} className="p-4 bg-slate-950/60 border border-white/5 rounded-2xl space-y-3 group hover:border-indigo-500/30 transition-all">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                        <span className="text-[9px] font-tech text-indigo-400 uppercase font-black">{draft.platformId} Draft</span>
+                                    </div>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={() => handleLoadDraft(draft)} className="text-slate-400 hover:text-white"><i className="fa-solid fa-arrow-up-from-bracket text-[10px]"></i></button>
+                                        <button onClick={() => handleDeleteDraft(draft.id)} className="text-slate-600 hover:text-rose-500"><i className="fa-solid fa-trash text-[10px]"></i></button>
+                                    </div>
+                                </div>
+                                <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed font-medium italic">"{draft.content}"</p>
+                                <div className="flex justify-between items-center text-[8px] text-slate-600 font-tech uppercase tracking-widest pt-2 border-t border-white/5">
+                                    <span>{draft.timestamp}</span>
+                                    <span className="font-black">ID:{draft.id}</span>
+                                </div>
+                            </div>
+                        )) : (
+                            <div className="py-20 text-center space-y-4 opacity-30">
+                                <i className="fa-solid fa-folder-open text-4xl"></i>
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em]">No drafts archived</p>
+                            </div>
+                        )}
+                    </div>
+                ) : mediaTab === 'ai' ? (
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         <div className="space-y-3">
                             <label className="text-[9px] font-tech text-slate-500 uppercase tracking-widest ml-1">Synthesis Prompt</label>
@@ -446,7 +539,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {generatedContent.platformPosts?.map((post: any, i: number) => (
-                            <PlatformPreview key={i} post={post} media={selectedMedia} />
+                            <PlatformPreview key={i} post={post} media={selectedMedia} onSaveDraft={handleSaveDraft} />
                         ))}
                     </div>
                     <div className="flex justify-center pt-8">
