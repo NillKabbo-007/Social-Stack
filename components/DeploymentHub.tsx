@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 
 const DeploymentHub: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'web' | 'android' | 'seo' | 'legal' | 'roadmap'>('roadmap');
+  const [activeTab, setActiveTab] = useState<'web' | 'android' | 'php' | 'seo' | 'legal' | 'roadmap'>('roadmap');
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditResult, setAuditResult] = useState<string | null>(null);
+  const [selectedPHP, setSelectedPHP] = useState('8.3');
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -16,38 +17,33 @@ const DeploymentHub: React.FC = () => {
     setAuditResult(null);
     setTimeout(() => {
       setIsAuditing(false);
-      setAuditResult("SCAN COMPLETE: Stack Security Verified. AES-256 Keys Confirmed. 0 Exposed Endpoints.");
+      setAuditResult("SCAN COMPLETE: Stack Security Verified. AES-256 Keys Confirmed. All PHP Endpoints Sanitized.");
     }, 2000);
   };
 
   const appStoreDescription = `🚀 DOMINATE YOUR DIGITAL EMPIRE WITH SOCIAL STACK
 Simplify Your Socials. Stack Your Success.
 
-Tired of juggling a dozen tabs just to see if your marketing is working? Meet Social Stack—the world's most powerful unified marketing SaaS and mobile app designed for 2026. Whether you're a high-growth startup or a multi-million dollar agency, Social Stack brings your entire digital presence into a single, high-fidelity command center.
+Social Stack is a high-fidelity command center for 2026. Designed for performance, built for scale.
 
 ✨ THE POWER OF THE STACK:
-• UNIFIED COMMAND: Connect Facebook, Instagram, TikTok, and Google Ads in 60 seconds.
-• WHATSAPP BUSINESS API: Automate customer engagement with our built-in bulk broadcaster and AI-driven chatbots.
-• BULK BROADCASTER: Create once, deploy everywhere. One-click publishing to FB, IG, and TikTok simultaneously.
-• GEMINI PRO AI ADVISOR: Get actionable, data-driven advice on budget allocation and content strategy.
-• DEEP ROI ANALYTICS: Stop guessing. See your real Return on Investment across all channels with radar-vector charts.
+• UNIFIED COMMAND: FB, IG, TikTok, Google Ads sync in seconds.
+• PHP NODE ORCHESTRATOR: Deploy across any PHP version (5.6 - 8.4) with one click.
+• WHATSAPP BUSINESS API: Automate customer engagement.
+• GEMINI PRO AI ADVISOR: Actionable, data-driven advice.
+• DEEP ROI ANALYTICS: Stop guessing, start stacking.
 
-🎯 WHY SOCIAL STACK?
-• Save 40+ hours per month on manual data entry.
-• Reduce ad waste with AI-powered budget redistribution.
-• Enterprise-grade encryption keeps your accounts 100% safe.
-
-Join 15,000+ top marketers who have already stacked their success. Download now and dominate the social graph.`;
+Download now and dominate the social graph.`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold text-white">Project Orchestrator</h2>
-          <p className="text-slate-400">Technical roadmap, build configurations, and final deployment status for Social Stack.</p>
+          <h2 className="text-3xl font-extrabold text-white uppercase tracking-tighter">Infrastructure Hub</h2>
+          <p className="text-slate-400">Build core configurations, deployment status, and final environment variables.</p>
         </div>
-        <div className="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700 overflow-x-auto no-scrollbar">
-          {['roadmap', 'web', 'android', 'seo', 'legal'].map(t => (
+        <div className="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700 overflow-x-auto no-scrollbar max-w-full">
+          {['roadmap', 'web', 'php', 'android', 'seo', 'legal'].map(t => (
             <button
               key={t}
               onClick={() => setActiveTab(t as any)}
@@ -55,7 +51,7 @@ Join 15,000+ top marketers who have already stacked their success. Download now 
                 activeTab === t ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-200'
               }`}
             >
-              {t}
+              {t === 'php' ? 'PHP Matrix' : t}
             </button>
           ))}
         </div>
@@ -66,65 +62,79 @@ Join 15,000+ top marketers who have already stacked their success. Download now 
           
           {/* TECHNICAL ROADMAP */}
           {activeTab === 'roadmap' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               <div className="glass-panel p-10 rounded-3xl border-indigo-500/20 bg-gradient-to-br from-indigo-900/10 to-transparent">
                 <h3 className="text-2xl font-black text-white mb-12 flex items-center gap-3">
                   <i className="fa-solid fa-map-location-dot text-indigo-500"></i>
-                  Technical Roadmap (Production)
+                  Production Blueprint
                 </h3>
                 
                 <div className="space-y-12">
-                  <div className="relative pl-10 border-l-2 border-slate-700">
-                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-[#0f172a]"></div>
-                    <div className="space-y-2">
-                       <h4 className="font-black text-indigo-400 uppercase tracking-widest text-sm">Phase 1: Foundation & Auth</h4>
-                       <p className="text-xs text-slate-300 leading-relaxed">OAuth 2.0 integration for Meta and Google. Implementation of Next.js 14 (App Router) and Flutter 3.x with BLoC pattern for the APK.</p>
+                  {[
+                    { phase: '01', title: 'Foundation & Auth', desc: 'OAuth 2.0 integration for Meta and Google. Next.js 14 App Router and high-speed SQLite/PostgreSQL caching layers.' },
+                    { phase: '02', title: 'Multi-API Sync Hub', desc: 'Integration of Meta Graph API (v19.0+), TikTok Business API, and PHP-based SMM providers (JAP/PeakSMM) via secure endpoints.' },
+                    { phase: '03', title: 'Dynamic Cloud Node', desc: 'Elastic infrastructure with selectable PHP versioning (5.6 - 8.4) to ensure compatibility with all legacy and modern SMM scripts.' },
+                    { phase: '04', title: 'Gemini Insight Core', desc: 'Gemini 3 Pro integration for the Strategic Advisor. Real-time budget pivots and trend grounding via Google Search.' }
+                  ].map((item) => (
+                    <div key={item.phase} className="relative pl-10 border-l-2 border-slate-700">
+                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-[#0f172a]"></div>
+                        <div className="space-y-2">
+                           <h4 className="font-black text-indigo-400 uppercase tracking-widest text-sm">Phase {item.phase}: {item.title}</h4>
+                           <p className="text-xs text-slate-300 leading-relaxed font-medium">{item.desc}</p>
+                        </div>
                     </div>
-                  </div>
-
-                  <div className="relative pl-10 border-l-2 border-slate-700">
-                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-[#0f172a]"></div>
-                    <div className="space-y-2">
-                       <h4 className="font-black text-indigo-400 uppercase tracking-widest text-sm">Phase 2: Multi-Platform API Sync</h4>
-                       <p className="text-xs text-slate-300 leading-relaxed">Integration of Meta Graph API (v19.0+), TikTok Business API, and Google Ads v16. Real-time data ingestion using Node.js/Express and PostgreSQL for high-scale metrics storage.</p>
-                    </div>
-                  </div>
-
-                  <div className="relative pl-10 border-l-2 border-slate-700">
-                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-[#0f172a]"></div>
-                    <div className="space-y-2">
-                       <h4 className="font-black text-indigo-400 uppercase tracking-widest text-sm">Phase 3: WhatsApp Cloud Engine</h4>
-                       <p className="text-xs text-slate-300 leading-relaxed">Direct connection to WhatsApp Business API via Meta Cloud API. Features: Automated template messaging, bulk broadcaster, and keyword-based AI chat replies.</p>
-                    </div>
-                  </div>
-
-                  <div className="relative pl-10 border-l-2 border-slate-700">
-                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-[#0f172a]"></div>
-                    <div className="space-y-2">
-                       <h4 className="font-black text-indigo-400 uppercase tracking-widest text-sm">Phase 4: Gemini Pro Insight Layer</h4>
-                       <p className="text-xs text-slate-300 leading-relaxed">Gemini 2.5/3.0 integration for the AI Strategy Advisor. Analysis of historical spend/reach to generate "Actionable Stacks" for growth optimization.</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* PHP MATRIX BUILD */}
+          {activeTab === 'php' && (
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+              <div className="glass-panel p-10 rounded-3xl border-white/5">
+                 <h3 className="text-xl font-bold mb-8 text-white flex items-center gap-3">
+                   <i className="fa-solid fa-code text-indigo-500"></i> PHP Infrastructure Selection
+                 </h3>
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+                    {['5.6', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4'].map(v => (
+                       <button 
+                         key={v} 
+                         onClick={() => setSelectedPHP(v)}
+                         className={`p-6 rounded-2xl border-2 transition-all group ${selectedPHP === v ? 'border-indigo-600 bg-indigo-600/10 shadow-xl' : 'border-slate-800 bg-slate-900/50 hover:border-slate-700'}`}
+                       >
+                          <div className="text-2xl font-display font-black text-white">v{v}</div>
+                          <div className={`text-[8px] font-black uppercase mt-1 ${selectedPHP === v ? 'text-indigo-400' : 'text-slate-500'}`}>
+                             {v === '8.3' ? 'Stable (LTS)' : v === '8.4' ? 'Latest' : 'Supported'}
+                          </div>
+                       </button>
+                    ))}
+                 </div>
+                 <div className="bg-black/50 p-6 rounded-2xl font-mono text-sm text-emerald-400 space-y-2 border border-slate-800 shadow-inner">
+                    <p className="text-slate-500">// System Deployment Script for PHP v{selectedPHP}</p>
+                    <p>sudo apt update && sudo apt install php{selectedPHP}-fpm php{selectedPHP}-mysql</p>
+                    <p>php -v // Verify Deployment Node</p>
+                    <p className="text-slate-500 mt-4">// Essential Modules Enabled</p>
+                    <p>mbstring, openssl, pdo, bcmath, json, curl</p>
+                 </div>
               </div>
             </div>
           )}
 
           {/* WEB BUILD */}
           {activeTab === 'web' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               <div className="glass-panel p-8 rounded-3xl border-slate-700/50">
-                 <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-                   <i className="fa-solid fa-code text-indigo-500"></i> Next.js Build Config
+                 <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white">
+                   <i className="fa-solid fa-cloud text-indigo-500"></i> Node.js SaaS Framework
                  </h3>
                  <div className="bg-black/50 p-6 rounded-2xl font-mono text-sm text-emerald-400 space-y-2 border border-slate-800">
-                    <p className="text-slate-500">// Terminal Commands</p>
-                    <p>npm install @google/genai chart.js framer-motion</p>
-                    <p>npm run build</p>
-                    <p className="text-slate-500 mt-4">// Env Variables Required</p>
-                    <p>NEXT_PUBLIC_META_APP_ID=***</p>
-                    <p>NEXT_PUBLIC_TIKTOK_KEY=***</p>
-                    <p>API_KEY=*** // Gemini Access</p>
+                    <p className="text-slate-500">// Initialize Production Client</p>
+                    <p>npm install @google/genai chart.js framer-motion lucide-react</p>
+                    <p>npm run build // Optimizing Assets</p>
+                    <p className="text-slate-500 mt-4">// Required Cloud Settings</p>
+                    <p>NODE_ENV=production</p>
+                    <p>PHP_NODE_PROXY=enabled // Cross-Runtime Sync</p>
                  </div>
               </div>
             </div>
@@ -140,31 +150,10 @@ Join 15,000+ top marketers who have already stacked their success. Download now 
                 </div>
                 <textarea 
                   readOnly
-                  className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-xs text-slate-400 h-80 leading-relaxed focus:ring-0"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-xs text-slate-400 h-80 leading-relaxed focus:ring-0 shadow-inner"
                   value={appStoreDescription}
                 />
-                <button onClick={() => copyToClipboard(appStoreDescription)} className="w-full py-4 mt-4 bg-amber-600 hover:bg-amber-500 rounded-2xl font-black text-xs uppercase transition-all">Copy Store Description</button>
-              </div>
-            </div>
-          )}
-
-          {/* LEGAL */}
-          {activeTab === 'legal' && (
-            <div className="space-y-6">
-              <div className="glass-panel p-8 rounded-3xl border-slate-700/50">
-                 <h3 className="text-xl font-bold mb-6">Compliance Documents</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-                       <h4 className="font-bold text-white">Privacy Policy</h4>
-                       <p className="text-[10px] text-slate-500 leading-relaxed uppercase font-black">GDPR & Meta Compliant</p>
-                       <button onClick={() => window.open('/privacy.html')} className="w-full py-2 bg-slate-800 rounded-lg text-[10px] font-bold">View Hosted Policy</button>
-                    </div>
-                    <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-                       <h4 className="font-bold text-white">Terms of Service</h4>
-                       <p className="text-[10px] text-slate-500 leading-relaxed uppercase font-black">SaaS Standard TOS</p>
-                       <button className="w-full py-2 bg-slate-800 rounded-lg text-[10px] font-bold">Download PDF</button>
-                    </div>
-                 </div>
+                <button onClick={() => copyToClipboard(appStoreDescription)} className="w-full py-4 mt-4 bg-amber-600 hover:bg-amber-500 rounded-2xl font-black text-xs uppercase transition-all shadow-lg">Copy Store Manifest</button>
               </div>
             </div>
           )}
@@ -173,7 +162,7 @@ Join 15,000+ top marketers who have already stacked their success. Download now 
         {/* RIGHT COLUMN */}
         <div className="lg:col-span-4 space-y-6">
           <div className="glass-panel p-8 rounded-3xl border-indigo-500/30 sticky top-24 shadow-2xl">
-            <h3 className="text-lg font-bold mb-8 flex items-center gap-2">
+            <h3 className="text-lg font-bold mb-8 flex items-center gap-2 text-white uppercase tracking-widest">
               <i className="fa-solid fa-shield-virus text-indigo-400"></i>
               Stack Integrity
             </h3>
@@ -191,17 +180,17 @@ Join 15,000+ top marketers who have already stacked their success. Download now 
               {auditResult && (
                 <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl animate-in zoom-in-95 duration-300">
                   <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Audit Success</p>
-                  <p className="text-[10px] text-slate-300 italic">"{auditResult}"</p>
+                  <p className="text-[10px] text-slate-300 italic font-medium">"{auditResult}"</p>
                 </div>
               )}
 
               <div className="pt-6 border-t border-slate-700/50 space-y-4">
-                 <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Build Manifest</h4>
+                 <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Build Manifest</h4>
                  {[
-                   { label: 'Web (Vercel)', status: 'Live', color: 'text-emerald-400' },
+                   { label: 'Web UI (Next.js)', status: 'Live', color: 'text-emerald-400' },
+                   { label: 'PHP Matrix Node', status: `v${selectedPHP}`, color: 'text-indigo-400' },
                    { label: 'Mobile (APK)', status: 'In Review', color: 'text-amber-400' },
-                   { label: 'WhatsApp Node', status: 'Secure', color: 'text-emerald-400' },
-                   { label: 'Ads API Core', status: 'Connected', color: 'text-emerald-400' }
+                   { label: 'SMM API Engine', status: 'Optimal', color: 'text-emerald-400' }
                  ].map((s, i) => (
                    <div key={i} className="flex justify-between items-center text-[11px] font-bold">
                       <span className="text-slate-400">{s.label}</span>
@@ -210,9 +199,9 @@ Join 15,000+ top marketers who have already stacked their success. Download now 
                  ))}
               </div>
 
-              <button className="w-full py-4 bg-indigo-600 rounded-xl font-black text-sm hover:bg-indigo-500 shadow-xl shadow-indigo-600/40 flex items-center justify-center gap-3 transition-all">
+              <button className="w-full py-4 bg-indigo-600 rounded-xl font-black text-sm text-white hover:bg-indigo-500 shadow-xl shadow-indigo-600/40 flex items-center justify-center gap-3 transition-all btn-3d mt-4">
                 <i className="fa-solid fa-cloud-arrow-up"></i>
-                DEPLOY GLOBAL STACK
+                DEPLOY STACK v3.5
               </button>
             </div>
           </div>

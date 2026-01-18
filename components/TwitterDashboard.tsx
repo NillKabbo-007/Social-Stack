@@ -4,8 +4,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell 
 } from 'recharts';
-// Fixed: Removed generateTwitterThread as it is not exported from geminiService
-import { getXFeed } from '../services/geminiService';
+import { getXFeed, generateTwitterThread } from '../services/geminiService';
 
 const ANALYTICS_DATA = [
   { day: 'Mon', impressions: 4500, engagement: 320, retweets: 45, replies: 28 },
@@ -15,13 +14,6 @@ const ANALYTICS_DATA = [
   { day: 'Fri', impressions: 6900, engagement: 680, retweets: 120, replies: 95 },
   { day: 'Sat', impressions: 3800, engagement: 410, retweets: 45, replies: 35 },
   { day: 'Sun', impressions: 4200, engagement: 450, retweets: 60, replies: 42 },
-];
-
-const AUDIENCE_DATA = [
-  { name: 'Tech', value: 45, color: '#1d9bf0' },
-  { name: 'Crypto', value: 25, color: '#00ba7c' },
-  { name: 'Marketing', value: 20, color: '#f91880' },
-  { name: 'News', value: 10, color: '#ffd400' },
 ];
 
 const TWITTER_PROFILE = {
@@ -41,11 +33,10 @@ const TwitterDashboard: React.FC = () => {
       { id: 2, content: ['Thread: 5 ways to optimize your React code 🧵👇', '1. Use useMemo sparingly...'], time: '2026-02-26T09:00', type: 'thread' }
   ]);
   
-  const [tweets, setTweets] = useState<string[]>(['']); 
+  const [composerTweets, setComposerTweets] = useState<string[]>(['']); 
   const [isPosting, setIsPosting] = useState(false);
   const [loadingFeed, setLoadingFeed] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'queue'>('timeline');
-  const [scheduleTime, setScheduleTime] = useState('');
   
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
@@ -90,10 +81,50 @@ const TwitterDashboard: React.FC = () => {
       }
   };
 
-  const handleDownloadReport = () => {
-      alert("Preparing high-fidelity PDF analytics report...");
-      setTimeout(() => alert("Twitter_Analytics_Q1.pdf downloaded successfully."), 1500);
+  const handleGenerateThread = async () => {
+    if (!aiTopic.trim()) return;
+    setIsGeneratingAi(true);
+    const thread = await generateTwitterThread(aiTopic, aiTone);
+    if (thread && thread.length > 0) {
+      setComposerTweets(thread);
+      setShowAiModal(false);
+      setAiTopic('');
+    } else {
+      alert("Failed to generate thread. Please try again.");
+    }
+    setIsGeneratingAi(false);
   };
+
+  const handleAddTweet = () => setComposerTweets(prev => [...prev, '']);
+  const handleRemoveTweet = (idx: number) => setComposerTweets(prev => prev.filter((_, i) => i !== idx));
+  const handleTweetChange = (idx: number, val: string) => {
+    const next = [...composerTweets];
+    next[idx] = val;
+    setComposerTweets(next);
+  };
+
+  const handlePostThread = () => {
+    if (composerTweets.some(t => !t.trim())) return;
+    setIsPosting(true);
+    setTimeout(() => {
+      alert("Thread successfully transmitted to the X network!");
+      setComposerTweets(['']);
+      setIsPosting(false);
+    }, 2000);
+  };
+
+  if (!isConnected) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] space-y-10 animate-in fade-in duration-500">
+          <div className="w-32 h-32 bg-black rounded-[2.5rem] flex items-center justify-center text-7xl text-white shadow-2xl border-4 border-white/10"><i className="fa-brands fa-x-twitter"></i></div>
+          <div className="text-center space-y-2">
+            <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Authorize X Node</h2>
+            <p className="text-slate-500 max-w-sm font-medium">Connect your X profile to unlock real-time intelligence and AI broadcasting.</p>
+          </div>
+          <button onClick={handleConnect} className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl flex items-center gap-4 active:scale-95"><i className="fa-solid fa-link"></i> Sync Identity</button>
+      </div>
+    );
+  }
 
   return (
       <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -113,7 +144,7 @@ const TwitterDashboard: React.FC = () => {
                 </div>
             </div>
             <div className="relative z-10 flex gap-3">
-                 <button onClick={handleDownloadReport} className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold uppercase text-xs flex items-center gap-2 transition-all">
+                 <button onClick={() => alert("Exporting report...")} className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold uppercase text-xs flex items-center gap-2 transition-all">
                     <i className="fa-solid fa-file-arrow-down"></i> Export PDF
                  </button>
                  <button onClick={() => setShowAiModal(true)} className="px-5 py-3 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-xl font-bold uppercase text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#1d9bf0]/20">
@@ -124,6 +155,45 @@ const TwitterDashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="space-y-8">
+                  <div className="glass-panel p-8 rounded-[2.5rem] border-slate-700/50 bg-white/5 shadow-2xl">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Broadcaster</h3>
+                        <button onClick={() => setShowAiModal(true)} className="text-[#1d9bf0] text-xs font-bold uppercase tracking-tighter hover:underline">AI Rewrite</button>
+                      </div>
+                      
+                      <div className="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar pr-1">
+                        {composerTweets.map((tweet, idx) => (
+                          <div key={idx} className="relative group animate-in slide-in-from-right-4 duration-300">
+                            <div className="absolute -left-3 top-0 bottom-0 w-0.5 bg-slate-800 rounded-full"></div>
+                            <textarea 
+                              value={tweet}
+                              onChange={(e) => handleTweetChange(idx, e.target.value)}
+                              placeholder={idx === 0 ? "What's happening?" : "Add another tweet..."}
+                              className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm text-white resize-none h-32 focus:ring-1 focus:ring-[#1d9bf0] transition-all shadow-inner font-medium"
+                            />
+                            <div className="absolute bottom-4 right-4 flex items-center gap-3">
+                              <span className={`text-[10px] font-tech font-black ${tweet.length > 280 ? 'text-rose-500' : 'text-slate-600'}`}>{tweet.length}/280</span>
+                              {composerTweets.length > 1 && (
+                                <button onClick={() => handleRemoveTweet(idx)} className="text-slate-700 hover:text-rose-500 transition-colors"><i className="fa-solid fa-trash-can text-xs"></i></button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-6 flex justify-between gap-4">
+                        <button onClick={handleAddTweet} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Add Node</button>
+                        <button 
+                          onClick={handlePostThread}
+                          disabled={isPosting || composerTweets.some(t => t.length > 280 || t.length === 0)}
+                          className="flex-1 py-4 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 btn-3d"
+                        >
+                          {isPosting ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-brands fa-x-twitter mr-2"></i>}
+                          Broadcast
+                        </button>
+                      </div>
+                  </div>
+
                   <div className="glass-panel p-6 rounded-3xl border-slate-700/50">
                       <h3 className="text-sm font-black text-white uppercase tracking-widest mb-4">Engagement Pulse</h3>
                       <div className="h-64">
@@ -145,11 +215,16 @@ const TwitterDashboard: React.FC = () => {
                               <button onClick={() => setActiveTab('timeline')} className={`text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'timeline' ? 'text-[#1d9bf0]' : 'text-slate-500'}`}>Timeline</button>
                               <button onClick={() => setActiveTab('queue')} className={`text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'queue' ? 'text-[#1d9bf0]' : 'text-slate-500'}`}>Queue</button>
                           </div>
-                          <button onClick={() => alert("Downloading CSV archive of all historical posts...")} className="text-[10px] font-black text-indigo-400 uppercase flex items-center gap-1.5"><i className="fa-solid fa-download"></i> Get Archive</button>
+                          <button onClick={() => alert("Downloading archive...")} className="text-[10px] font-black text-indigo-400 uppercase flex items-center gap-1.5"><i className="fa-solid fa-download"></i> Get Archive</button>
                       </div>
 
                       <div className="space-y-4">
-                          {activeTab === 'timeline' ? (
+                          {loadingFeed ? (
+                            <div className="py-20 text-center space-y-4 text-slate-600">
+                                <i className="fa-solid fa-satellite fa-spin text-2xl"></i>
+                                <p className="text-[10px] font-tech font-black uppercase tracking-widest">Polling X Network...</p>
+                            </div>
+                          ) : activeTab === 'timeline' ? (
                               feed.map((post, i) => (
                                   <div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-slate-800/50 transition-colors group">
                                       <div className="flex gap-3">
@@ -158,25 +233,105 @@ const TwitterDashboard: React.FC = () => {
                                               <div className="flex justify-between items-start">
                                                   <div>
                                                       <h4 className="font-bold text-white text-sm">{post.author}</h4>
-                                                      <p className="text-slate-500 text-xs">{post.handle} · {post.time}</p>
+                                                      <p className="text-slate-500 text-xs">@{post.author?.toLowerCase().replace(/\s/g, '')} · {post.time}</p>
                                                   </div>
                                                   <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <button onClick={() => alert("Post snapshot saved to local storage.")} className="text-slate-500 hover:text-white"><i className="fa-solid fa-download text-xs"></i></button>
+                                                      <button className="text-slate-500 hover:text-white"><i className="fa-solid fa-download text-xs"></i></button>
                                                       <i className="fa-brands fa-x-twitter text-slate-600"></i>
                                                   </div>
                                               </div>
-                                              <p className="text-slate-300 text-sm mt-2 whitespace-pre-wrap">{post.content}</p>
+                                              <p className="text-slate-300 text-sm mt-2 whitespace-pre-wrap leading-relaxed font-medium">{post.content}</p>
+                                              <div className="mt-4 flex gap-6 text-[10px] font-tech font-black text-slate-600 uppercase">
+                                                  <span className="flex items-center gap-1.5"><i className="fa-regular fa-comment"></i> 0</span>
+                                                  <span className="flex items-center gap-1.5"><i className="fa-solid fa-retweet"></i> 0</span>
+                                                  <span className="flex items-center gap-1.5"><i className="fa-regular fa-heart"></i> {post.metrics?.likes || 0}</span>
+                                                  <span className="flex items-center gap-1.5"><i className="fa-solid fa-chart-simple"></i> {post.metrics?.views || 0}</span>
+                                              </div>
                                           </div>
                                       </div>
                                   </div>
                               ))
                           ) : (
-                              <div className="text-center py-12 text-slate-500"><p className="text-xs font-bold uppercase">Queue is empty</p></div>
+                              <div className="text-center py-20 text-slate-500 border-2 border-dashed border-slate-800 rounded-3xl">
+                                <i className="fa-solid fa-clock-rotate-left text-4xl mb-4 opacity-20"></i>
+                                <p className="text-xs font-black uppercase tracking-widest">No nodes in queue</p>
+                              </div>
                           )}
                       </div>
                   </div>
               </div>
           </div>
+
+          {/* AI WRITER MODAL */}
+          {showAiModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                <div className="bg-[#0f172a] border border-slate-700 w-full max-w-xl rounded-[3rem] p-10 space-y-8 shadow-4xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#1d9bf0] to-transparent"></div>
+                    
+                    <button 
+                        onClick={() => setShowAiModal(false)}
+                        className="absolute top-6 right-6 w-10 h-10 bg-white/5 hover:bg-rose-600 rounded-full flex items-center justify-center text-white transition-all"
+                    >
+                        <i className="fa-solid fa-xmark"></i>
+                    </button>
+
+                    <div className="flex items-center gap-5">
+                        <div className="w-16 h-16 bg-[#1d9bf0] rounded-[1.5rem] flex items-center justify-center text-3xl text-white shadow-2xl shadow-[#1d9bf0]/20">
+                            <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">AI Thread Synthesis</h3>
+                            <p className="text-[10px] font-tech text-slate-500 uppercase tracking-widest">Powered by Gemini 3 Node</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-tech text-slate-500 uppercase tracking-[0.3em] ml-1">Synthesis Topic</label>
+                            <textarea 
+                                value={aiTopic}
+                                onChange={(e) => setAiTopic(e.target.value)}
+                                placeholder="What should your thread be about? (e.g. 5 React Hooks to master)"
+                                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-6 text-sm text-white resize-none h-32 focus:ring-1 focus:ring-[#1d9bf0] transition-all shadow-inner"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-tech text-slate-500 uppercase tracking-[0.3em] ml-1">Vocal Identity (Tone)</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {['Viral / Hype', 'Professional', 'Educational', 'Controversial'].map(tone => (
+                                    <button 
+                                        key={tone}
+                                        onClick={() => setAiTone(tone)}
+                                        className={`py-4 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${aiTone === tone ? 'bg-[#1d9bf0]/10 border-[#1d9bf0] text-white' : 'bg-slate-900 border-slate-800 text-slate-600 hover:border-slate-700'}`}
+                                    >
+                                        {tone}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button 
+                        onClick={handleGenerateThread}
+                        disabled={isGeneratingAi || !aiTopic.trim()}
+                        className="w-full py-6 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-2xl font-display font-black text-sm uppercase tracking-widest transition-all shadow-xl shadow-[#1d9bf0]/20 flex items-center justify-center gap-3 disabled:opacity-50 btn-3d"
+                    >
+                        {isGeneratingAi ? (
+                            <>
+                                <i className="fa-solid fa-dna fa-spin"></i>
+                                Sequencing Thread...
+                            </>
+                        ) : (
+                            <>
+                                <i className="fa-solid fa-bolt-lightning"></i>
+                                Generate Thread
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+          )}
       </div>
   );
 };

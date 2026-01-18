@@ -9,6 +9,7 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
   const [commandInput, setCommandInput] = useState('');
   const [isExecutingCommand, setIsExecutingCommand] = useState(false);
   const [commandResult, setCommandResult] = useState<any>(null);
+  const [commandSources, setCommandSources] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [xFeed, setXFeed] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
@@ -35,8 +36,11 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
   const handleCommand = async () => {
     if (!commandInput.trim()) return;
     setIsExecutingCommand(true);
-    const { results } = await executeStrategicCommand(commandInput, { ROI_DATA, PLATFORMS });
+    setCommandResult(null);
+    setCommandSources([]);
+    const { results, sources } = await executeStrategicCommand(commandInput, { ROI_DATA, PLATFORMS });
     setCommandResult(results);
+    setCommandSources(sources);
     setIsExecutingCommand(false);
   };
 
@@ -45,42 +49,56 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
       
       {/* COMMAND NODE */}
       <div className="relative overflow-hidden glass-panel rounded-[2.5rem] border-indigo-500/20">
-          <div className="bg-indigo-600/5 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
-             <div className="flex items-center gap-4 flex-shrink-0">
-                <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-600/20">
-                    <i className="fa-solid fa-bolt-lightning"></i>
+          <div className="bg-indigo-600/5 backdrop-blur-xl p-6 md:p-8 flex flex-col gap-6">
+             <div className="flex flex-col md:flex-row gap-6 items-center">
+                <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-600/20">
+                        <i className="fa-solid fa-bolt-lightning"></i>
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-display font-black text-white leading-tight uppercase tracking-tight">Strategy Node</h2>
+                        <p className="text-[10px] text-slate-500 font-tech uppercase tracking-widest">v3.5 Build</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-lg font-display font-black text-white leading-tight uppercase tracking-tight">Strategy Node</h2>
-                    <p className="text-[10px] text-slate-500 font-tech uppercase tracking-widest">v3.4 Production</p>
-                </div>
-             </div>
-             
-             <div className="flex-1 w-full">
-                <div className="relative group">
-                    <input 
-                        value={commandInput}
-                        onChange={(e) => setCommandInput(e.target.value)}
-                        placeholder="Initialize strategic request..."
-                        className="w-full bg-slate-900 border border-white/5 rounded-2xl pl-6 pr-16 py-4 text-xs text-white focus:ring-2 focus:ring-indigo-500 transition-all font-medium placeholder-slate-600 shadow-inner"
-                        onKeyDown={(e) => e.key === 'Enter' && handleCommand()}
-                    />
-                    <button 
-                        onClick={handleCommand}
-                        disabled={isExecutingCommand || !commandInput.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-50 shadow-lg"
-                    >
-                        {isExecutingCommand ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-paper-plane text-xs"></i>}
-                    </button>
+                
+                <div className="flex-1 w-full">
+                    <div className="relative group">
+                        <input 
+                            value={commandInput}
+                            onChange={(e) => setCommandInput(e.target.value)}
+                            placeholder="Initialize strategic request (e.g. Optimize my TikTok spend)..."
+                            className="w-full bg-slate-900 border border-white/5 rounded-2xl pl-6 pr-16 py-4 text-xs text-white focus:ring-2 focus:ring-indigo-500 transition-all font-medium placeholder-slate-600 shadow-inner"
+                            onKeyDown={(e) => e.key === 'Enter' && handleCommand()}
+                        />
+                        <button 
+                            onClick={handleCommand}
+                            disabled={isExecutingCommand || !commandInput.trim()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-50 shadow-lg"
+                        >
+                            {isExecutingCommand ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-paper-plane text-xs"></i>}
+                        </button>
+                    </div>
                 </div>
              </div>
 
              {commandResult && (
-                <div className="flex gap-4 animate-in slide-in-from-right-4">
-                    <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl max-w-[200px]">
-                        <p className="text-[8px] font-black text-emerald-400 uppercase mb-1">AI Verdict</p>
-                        <p className="text-[10px] text-white font-bold leading-tight line-clamp-2">{commandResult.suggestedAction}</p>
+                <div className="animate-in slide-in-from-top-2 duration-300 space-y-4">
+                    <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem]">
+                        <p className="text-[10px] font-black text-emerald-400 uppercase mb-2 tracking-widest flex items-center gap-2">
+                           <i className="fa-solid fa-brain-circuit"></i> AI Strategic Verdict
+                        </p>
+                        <p className="text-sm text-white font-bold leading-relaxed">{commandResult.suggestedAction}</p>
                     </div>
+                    
+                    {commandSources.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {commandSources.map((src, i) => (
+                                <a key={i} href={src.uri} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-slate-800/80 border border-slate-700/50 rounded-lg text-[9px] font-bold text-slate-400 hover:text-indigo-400 transition-colors flex items-center gap-2">
+                                    <i className="fa-solid fa-link"></i> {src.title}
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
              )}
           </div>
@@ -114,7 +132,6 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                         </span>
                     </div>
                 </div>
-                {/* Fixed sizing container for Recharts */}
                 <div className="h-64 w-full min-h-[256px] relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -149,7 +166,7 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                             <div key={i} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
                                 <div className="flex items-center gap-2">
                                     <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-400">
-                                        {post.author[0]}
+                                        {post.author?.[0] || 'X'}
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-bold text-white leading-none">{post.author}</p>

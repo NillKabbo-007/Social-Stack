@@ -1,10 +1,13 @@
 
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
+/**
+ * Creates a fresh AI instance for every request to ensure latest environment variables.
+ */
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Robust JSON parser that handles common AI response issues
+ * Robust JSON parser that handles common AI response formatting issues (like markdown blocks).
  */
 const safeParseJSON = (text: string | undefined, fallback: any = []) => {
     if (!text) return fallback;
@@ -13,8 +16,23 @@ const safeParseJSON = (text: string | undefined, fallback: any = []) => {
     try {
         return JSON.parse(cleaned);
     } catch (e) {
+        console.error("JSON Parse Error:", e, "Raw Text:", text);
         return fallback;
     }
+};
+
+/**
+ * Extracts grounding chunks from the model response for transparency and citations.
+ */
+const extractSources = (response: any) => {
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    if (!chunks) return [];
+    return chunks
+        .filter((chunk: any) => chunk.web)
+        .map((chunk: any) => ({
+            title: chunk.web.title || "External Source",
+            uri: chunk.web.uri
+        }));
 };
 
 // Manual base64 decode as per coding guidelines
@@ -132,11 +150,35 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
     }
 };
 
+export const generateTwitterThread = async (topic: string, tone: string) => {
+  const ai = getAI();
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Create a highly engaging Twitter thread about: "${topic}". Tone: ${tone}.
+      Format the response as a JSON array of strings, where each string is a single tweet (strictly under 280 characters).
+      Include relevant hashtags and emojis.
+      The first tweet should be a compelling hook.
+      The last tweet should be a strong call to action (CTA).`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    });
+    return safeParseJSON(response.text);
+  } catch (error) {
+    console.error("Twitter Thread Gen Error", error);
+    return [];
+  }
+};
+
 export const generateAIImage = async (prompt: string, options: { aspectRatio?: string, style?: string, negativePrompt?: string, seed?: number } = {}) => {
     try {
         const ai = getAI();
         let finalPrompt = prompt;
-        // Inject style and negative constraints into the prompt for the model
         if (options.style && options.style !== 'Standard') {
           finalPrompt = `Artistic Style: ${options.style}. Subject: ${finalPrompt}`;
         }
@@ -226,7 +268,10 @@ export const executeStrategicCommand = async (commandInput: string, contextData:
         }
       }
     });
-    return { results: safeParseJSON(response.text, {}), sources: [] };
+    return { 
+        results: safeParseJSON(response.text, { suggestedAction: "Node busy. Try again." }), 
+        sources: extractSources(response) 
+    };
   } catch (error) {
     return { results: null, sources: [] };
   }
@@ -288,7 +333,10 @@ export const getMarketingInsights = async (data: any, useSearch: boolean, useThi
                 }
             }
         });
-        return { results: safeParseJSON(response.text), sources: [] };
+        return { 
+            results: safeParseJSON(response.text), 
+            sources: extractSources(response) 
+        };
     } catch (e) { return { results: [], sources: [] }; }
 };
 
