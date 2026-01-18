@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import SummaryCard from './SummaryCard';
+import TaskManager from './TaskManager';
 import { ROI_DATA, PLATFORMS, GLOBAL_CURRENCIES } from '../constants';
 import { executeStrategicCommand, getXFeed } from '../services/geminiService';
 
@@ -150,7 +151,8 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-            <div className="glass-panel rounded-[2.5rem] border-slate-700/50 flex flex-col h-full overflow-hidden">
+            <TaskManager />
+            <div className="glass-panel rounded-[2.5rem] border-slate-700/50 flex flex-col h-80 overflow-hidden">
                 <div className="p-6 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
                     <h3 className="text-xs font-tech font-black text-white uppercase tracking-widest">Intel Feed</h3>
                     <i className="fa-brands fa-x-twitter text-slate-600"></i>

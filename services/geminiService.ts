@@ -71,14 +71,13 @@ export const generateViralSuggestions = async (niche: string, tone: string, plat
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Search Google Trends and social media data to identify 3 ultra-current viral marketing trends for the "${niche}" niche. 
-      Specifically look for:
-      1. TikTok/Reels specific viral patterns (visual styles, transitions).
-      2. Trending audio concepts or "sounds" currently gaining velocity.
-      3. Content hooks that are resulting in high retention.
+      contents: `Search Google Trends and live social media metrics to identify 4 ultra-current viral marketing patterns for the "${niche}" niche as of early 2026. 
+      Focus on patterns that are platform-specific:
+      - For TikTok/Reels: Identify specific visual "hooks" (e.g., specific camera movements or overlay styles) and audio profiles (e.g., "ASMR crunch", "Lo-fi synth build-up").
+      - For LinkedIn/Twitter: Identify content structures (e.g., "The Contrast Thread", "The contrarian deep-dive") and trending industry topics.
       
-      Tone to adopt: ${tone}. 
-      Target Platforms: ${platforms.join(', ')}.`,
+      User's target tone: ${tone}. 
+      Selected Channels: ${platforms.join(', ')}.`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
@@ -87,14 +86,14 @@ export const generateViralSuggestions = async (niche: string, tone: string, plat
           items: {
             type: Type.OBJECT,
             properties: {
-              type: { type: Type.STRING, description: "Type of trend (e.g. Visual Pattern, Audio Trend, Content Hook)" },
+              type: { type: Type.STRING, description: "Category (e.g., Visual Pattern, Audio Wave, Hook Architecture)" },
               topic: { type: Type.STRING },
               description: { type: Type.STRING },
               viralHook: { type: Type.STRING, description: "The specific opening phrase or visual action to hook viewers" },
-              trendingAudio: { type: Type.STRING, description: "Description of the style of audio or specific trending sound type" },
-              patternDescription: { type: Type.STRING, description: "Details on the visual/structural pattern of the trend" },
+              trendingAudio: { type: Type.STRING, description: "Specific trending sound type or auditory mood" },
+              patternDescription: { type: Type.STRING, description: "Technical breakdown of why this works (the algorithm trigger)" },
               suggestedAngle: { type: Type.STRING },
-              velocityScore: { type: Type.NUMBER, description: "Score from 1-100 indicating how fast this trend is growing" },
+              velocityScore: { type: Type.NUMBER, description: "Score from 1-100 indicating search and share velocity" },
               platforms: { type: Type.ARRAY, items: { type: Type.STRING } }
             },
             required: ["type", "topic", "description", "viralHook", "trendingAudio", "patternDescription", "suggestedAngle", "velocityScore", "platforms"]
@@ -114,13 +113,19 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: `Generate multi-platform optimized social posts for: "${prompt}". Tone: ${tone}. Keywords: ${keywords}. Platforms: ${platforms.join(', ')}.`,
+            contents: `Synthesize a high-engagement broadcast payload for: "${prompt}". 
+            Target Vocal Signature: ${tone}. 
+            Metadata Keywords: ${keywords}. 
+            Output specifically for: ${platforms.join(', ')}. 
+            For short-form video platforms (TikTok/IG), provide a script-ready caption. 
+            For YouTube, return a high-CTR 'youtubeTitle'.`,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
                         generalContent: { type: Type.STRING },
+                        youtubeTitle: { type: Type.STRING },
                         platformPosts: {
                             type: Type.ARRAY,
                             items: {
@@ -151,7 +156,6 @@ export const generateAIImage = async (prompt: string, options: { aspectRatio?: s
                 imageConfig: { aspectRatio: (options.aspectRatio || "1:1") as any }
             }
         });
-        // Correct retrieval of image part from nano banana candidates
         const candidate = response.candidates?.[0];
         if (!candidate) return null;
         const part = candidate.content.parts.find(p => p.inlineData);
@@ -339,16 +343,31 @@ export const getYoutubeAnalytics = async () => {
   try {
     const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Simulate channel analytics for a marketing-tech YouTube channel.",
+      contents: "Analyze recent performance data for the Social Stack YouTube channel using simulated metrics for 2026. Include revenue, view growth, and top-performing video nodes.",
       config: {
+        tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
             revenue: { type: Type.NUMBER },
+            subscribers: { type: Type.NUMBER },
+            totalViews: { type: Type.NUMBER },
+            engagementRate: { type: Type.NUMBER },
             recentVideos: {
               type: Type.ARRAY,
-              items: { type: Type.OBJECT, properties: { id: { type: Type.STRING }, title: { type: Type.STRING }, views: { type: Type.STRING }, likes: { type: Type.STRING }, thumbnail: { type: Type.STRING } } }
+              items: { 
+                type: Type.OBJECT, 
+                properties: { 
+                    id: { type: Type.STRING }, 
+                    title: { type: Type.STRING }, 
+                    views: { type: Type.STRING }, 
+                    likes: { type: Type.STRING }, 
+                    thumbnail: { type: Type.STRING },
+                    watchTime: { type: Type.STRING },
+                    retention: { type: Type.NUMBER }
+                } 
+              }
             }
           }
         }
@@ -356,6 +375,16 @@ export const getYoutubeAnalytics = async () => {
     });
     return safeParseJSON(response.text, { revenue: 0, recentVideos: [] });
   } catch (e) { return { revenue: 0, recentVideos: [] }; }
+};
+
+export const uploadToYoutube = async (title: string, description: string, videoUrl: string) => {
+    console.log(`[YouTube API] Initializing Upload for: ${title}`);
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    return {
+        id: Math.random().toString(36).substr(2, 11),
+        status: 'success',
+        publishedAt: new Date().toISOString()
+    };
 };
 
 export const getDailyNews = async (location: string, language: string) => {

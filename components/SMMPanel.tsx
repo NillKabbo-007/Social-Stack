@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
 import { SMM_SERVICES, GLOBAL_CURRENCIES } from '../constants';
 
-type SortOption = 'id' | 'price-asc' | 'price-desc' | 'speed' | 'quality';
+type SortOption = 'id' | 'price-asc' | 'price-desc' | 'speed' | 'quality' | 'reliability';
 type ViewType = 'grid' | 'list';
 
 const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({ onBuy, currency = 'USD' }) => {
@@ -49,6 +48,7 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
         });
         break;
       case 'quality':
+      case 'reliability':
         const qualityRank: Record<string, number> = { 'Ultra': 4, 'Premium': 3, 'HQ': 2, 'Stable': 1, 'Fast': 0 };
         items.sort((a, b) => (qualityRank[b.stability || 'Fast'] || 0) - (qualityRank[a.stability || 'Fast'] || 0));
         break;
@@ -57,6 +57,17 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
 
     return items;
   }, [currentCategoryData, activeType, searchQuery, sortBy]);
+
+  // Group items by type for granular presentation
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    filteredAndSortedItems.forEach(item => {
+        const type = item.type || 'Other';
+        if (!groups[type]) groups[type] = [];
+        groups[type].push(item);
+    });
+    return groups;
+  }, [filteredAndSortedItems]);
 
   const handlePlaceOrder = () => {
     if (!selectedService || !link || quantity < selectedService.min) return;
@@ -74,6 +85,16 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
       case 'Stable': return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
       default: return 'text-slate-400 bg-slate-500/10 border-slate-500/30';
     }
+  };
+
+  const getReliabilityScore = (stability: string) => {
+      switch(stability) {
+          case 'Ultra': return 99.9;
+          case 'Premium': return 98.5;
+          case 'HQ': return 95.2;
+          case 'Stable': return 92.0;
+          default: return 88.5;
+      }
   };
 
   return (
@@ -119,7 +140,10 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
                         </div>
                         <span className="text-[11px] font-black uppercase tracking-wider">{cat.category}</span>
                     </div>
-                    {activeCategory === cat.category && <i className="fa-solid fa-chevron-right text-[10px]"></i>}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] opacity-40 font-mono">{cat.items.length}</span>
+                        {activeCategory === cat.category && <i className="fa-solid fa-chevron-right text-[10px]"></i>}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -171,6 +195,7 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
                         <option value="price-desc">Price: High</option>
                         <option value="speed">Max Velocity</option>
                         <option value="quality">Grade: Ultra</option>
+                        <option value="reliability">Reliability</option>
                     </select>
                   </div>
                 </div>
@@ -188,54 +213,67 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
                 </div>
             </div>
 
-            {/* SERVICES LIST */}
-            <div className={`space-y-6 max-h-[80vh] overflow-y-auto pr-3 no-scrollbar scroll-smooth pb-10`}>
-              {filteredAndSortedItems.length > 0 ? filteredAndSortedItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  onClick={() => { setSelectedService(item); setQuantity(item.min); }} 
-                  className={`glass-panel p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer group flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden ${selectedService?.id === item.id ? 'border-indigo-500 bg-indigo-600/5 shadow-[0_20px_50px_rgba(79,70,229,0.1)] scale-[1.01]' : 'border-white/5 hover:border-white/20'}`}
-                >
-                  <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                     <i className={`${currentCategoryData.icon} text-9xl`}></i>
-                  </div>
-
-                  {/* Service Icon Node */}
-                  <div 
-                    className={`w-20 h-20 rounded-[1.75rem] bg-slate-900 border-2 border-white/5 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform shrink-0 relative z-10`} 
-                    style={{ color: currentCategoryData.color }}
-                  >
-                    <i className={`${currentCategoryData.icon} text-4xl`}></i>
-                    {item.stability === 'Ultra' && <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-[8px] border-2 border-[#020617] animate-bounce shadow-lg"><i className="fa-solid fa-crown"></i></div>}
-                  </div>
-
-                  <div className={`flex-1 min-w-0 space-y-4 text-center sm:text-left relative z-10`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <h4 className="text-[15px] font-black text-white uppercase tracking-tight truncate leading-tight group-hover:text-indigo-400 transition-colors">{item.name}</h4>
-                        {item.stability && (
-                            <span className={`px-4 py-1 rounded-full text-[8px] font-black uppercase border-2 transition-all mx-auto sm:mx-0 ${getStabilityColor(item.stability)}`}>
-                                {item.stability} GRADE
-                            </span>
-                        )}
+            {/* SERVICES LIST Grouped by Sub-category */}
+            <div className={`space-y-12 max-h-[80vh] overflow-y-auto pr-3 no-scrollbar scroll-smooth pb-10`}>
+              {Object.keys(groupedItems).length > 0 ? Object.entries(groupedItems).map(([type, items]) => (
+                <div key={type} className="space-y-6">
+                    <div className="flex items-center gap-4 ml-4">
+                        <h3 className="text-xs font-tech font-black text-indigo-400 uppercase tracking-[0.4em]">{type} Node Sub-Cluster</h3>
+                        <div className="h-px flex-1 bg-white/5"></div>
                     </div>
                     
-                    <div className="flex flex-wrap justify-center sm:justify-start gap-4 font-tech text-[9px] uppercase tracking-widest text-slate-500">
-                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-fingerprint text-indigo-500"></i> NODE #{item.id}</span>
-                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-gauge-high text-indigo-500"></i> {item.speed}</span>
-                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-shield-check text-emerald-500"></i> {item.guarantee}</span>
-                    </div>
-                  </div>
+                    <div className="space-y-4">
+                        {/* Fix: Added explicit type cast to any[] for 'items' to resolve 'unknown' map error */}
+                        {(items as any[]).map((item) => (
+                            <div 
+                                key={item.id} 
+                                onClick={() => { setSelectedService(item); setQuantity(item.min); }} 
+                                className={`glass-panel p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer group flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden ${selectedService?.id === item.id ? 'border-indigo-500 bg-indigo-600/5 shadow-[0_20px_50px_rgba(79,70,229,0.1)] scale-[1.01]' : 'border-white/5 hover:border-white/20'}`}
+                            >
+                                <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                                    <i className={`${currentCategoryData.icon} text-9xl`}></i>
+                                </div>
 
-                  <div className={`flex flex-col items-center sm:items-end shrink-0 pt-6 sm:pt-0 sm:pl-8 sm:border-l sm:border-white/10 relative z-10`}>
-                    <div className="flex items-end gap-1">
-                       <span className="text-xl font-black text-indigo-400 mb-1">$</span>
-                       <p className="text-4xl font-display font-black text-white glowing-text leading-none tracking-tighter tabular-nums">{item.price.toFixed(3)}</p>
+                                {/* Service Icon Node */}
+                                <div 
+                                    className={`w-20 h-20 rounded-[1.75rem] bg-slate-900 border-2 border-white/5 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform shrink-0 relative z-10`} 
+                                    style={{ color: currentCategoryData.color }}
+                                >
+                                    <i className={`${currentCategoryData.icon} text-4xl`}></i>
+                                    {item.stability === 'Ultra' && <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-[8px] border-2 border-[#020617] animate-bounce shadow-lg"><i className="fa-solid fa-crown"></i></div>}
+                                </div>
+
+                                <div className={`flex-1 min-w-0 space-y-4 text-center sm:text-left relative z-10`}>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                        <h4 className="text-[15px] font-black text-white uppercase tracking-tight truncate leading-tight group-hover:text-indigo-400 transition-colors">{item.name}</h4>
+                                        {item.stability && (
+                                            <span className={`px-4 py-1 rounded-full text-[8px] font-black uppercase border-2 transition-all mx-auto sm:mx-0 ${getStabilityColor(item.stability)}`}>
+                                                {item.stability} GRADE
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex flex-wrap justify-center sm:justify-start gap-4 font-tech text-[9px] uppercase tracking-widest text-slate-500">
+                                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-fingerprint text-indigo-500"></i> NODE #{item.id}</span>
+                                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-gauge-high text-indigo-500"></i> {item.speed}</span>
+                                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-shield-check text-emerald-500"></i> {item.guarantee}</span>
+                                        <span className="flex items-center gap-2 px-3 py-1.5 bg-black/60 rounded-xl border border-white/5"><i className="fa-solid fa-signal text-amber-500"></i> {getReliabilityScore(item.stability || 'Stable')}% RELIABLE</span>
+                                    </div>
+                                </div>
+
+                                <div className={`flex flex-col items-center sm:items-end shrink-0 pt-6 sm:pt-0 sm:pl-8 sm:border-l sm:border-white/10 relative z-10`}>
+                                    <div className="flex items-end gap-1">
+                                        <span className="text-xl font-black text-indigo-400 mb-1">$</span>
+                                        <p className="text-4xl font-display font-black text-white glowing-text leading-none tracking-tighter tabular-nums">{item.price.toFixed(3)}</p>
+                                    </div>
+                                    <p className="text-[9px] text-slate-600 font-tech uppercase tracking-[0.3em] mt-3 font-black">RATE / 1.0K UNITS</p>
+                                    <div className="mt-4 flex gap-1">
+                                        {[1,2,3,4,5].map(i => <div key={i} className={`w-3 h-1 rounded-full ${i <= (item.stability === 'Ultra' ? 5 : item.stability === 'Premium' ? 4 : 3) ? 'bg-indigo-500 shadow-[0_0_5px_#6366f1]' : 'bg-slate-800'}`}></div>)}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <p className="text-[9px] text-slate-600 font-tech uppercase tracking-[0.3em] mt-3 font-black">RATE / 1.0K UNITS</p>
-                    <div className="mt-4 flex gap-1">
-                        {[1,2,3,4,5].map(i => <div key={i} className={`w-3 h-1 rounded-full ${i <= (item.stability === 'Ultra' ? 5 : item.stability === 'Premium' ? 4 : 3) ? 'bg-indigo-500 shadow-[0_0_5px_#6366f1]' : 'bg-slate-800'}`}></div>)}
-                    </div>
-                  </div>
                 </div>
               )) : (
                 <div className="col-span-full py-40 text-center glass-panel rounded-[4rem] border-dashed border-white/10 border-2 bg-slate-950/20">
@@ -312,6 +350,11 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
                                 className="w-full bg-slate-950/80 border-2 border-white/5 rounded-1.5rem px-8 py-6 text-5xl font-display font-black text-white focus:ring-0 focus:border-indigo-500/50 shadow-inner outline-none transition-all glowing-text tracking-tighter" 
                             />
                             <div className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-700 font-tech text-[10px] uppercase font-black pointer-events-none group-focus-within/input:text-indigo-500 transition-colors">Nodes</div>
+                        </div>
+                        <div className="flex justify-between px-2">
+                             <button onClick={() => setQuantity(selectedService.min)} className="text-[8px] font-black uppercase text-indigo-500 hover:text-white transition-colors">Set Min</button>
+                             <button onClick={() => setQuantity(Math.min(selectedService.max, 10000))} className="text-[8px] font-black uppercase text-indigo-500 hover:text-white transition-colors">Set 10K</button>
+                             <button onClick={() => setQuantity(selectedService.max)} className="text-[8px] font-black uppercase text-indigo-500 hover:text-white transition-colors">Set Max</button>
                         </div>
                         </div>
                     </div>

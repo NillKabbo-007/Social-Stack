@@ -47,6 +47,15 @@ export interface MediaItem {
   size?: string;
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  priority: 'High' | 'Medium' | 'Low';
+  dueDate: string;
+  completed: boolean;
+  category?: string;
+}
+
 export enum AppRoute {
   DASHBOARD = 'dashboard',
   ANALYTICS = 'analytics',
