@@ -1,8 +1,8 @@
 
 {
-  "name": "social-stack",
+  "name": "social-stack-marketing",
   "private": true,
-  "version": "1.0.0",
+  "version": "3.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

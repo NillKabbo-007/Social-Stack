@@ -2,12 +2,12 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
 /**
- * Creates a fresh AI instance for every request to ensure latest environment variables.
+ * Core initialization: New instance per call to ensure fresh environment variable access.
  */
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Robust JSON parser that handles common AI response formatting issues (like markdown blocks).
+ * Handles common model response quirks and sanitizes JSON strings.
  */
 const safeParseJSON = (text: string | undefined, fallback: any = []) => {
     if (!text) return fallback;
@@ -16,13 +16,13 @@ const safeParseJSON = (text: string | undefined, fallback: any = []) => {
     try {
         return JSON.parse(cleaned);
     } catch (e) {
-        console.error("JSON Parse Error:", e, "Raw Text:", text);
+        console.error("JSON Parse Error:", e, "Raw Content:", text);
         return fallback;
     }
 };
 
 /**
- * Extracts grounding chunks from the model response for transparency and citations.
+ * Citations extraction logic for Google Search grounding.
  */
 const extractSources = (response: any) => {
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
@@ -35,7 +35,7 @@ const extractSources = (response: any) => {
         }));
 };
 
-// Manual base64 decode as per coding guidelines
+// Manual base64 decode for binary parts (SDK Requirement)
 const decodeBase64 = (base64: string) => {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -46,7 +46,7 @@ const decodeBase64 = (base64: string) => {
   return bytes;
 };
 
-// Manual audio data decoding for raw PCM streams as per coding guidelines
+// Manual PCM audio data decoding (SDK Requirement)
 async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
@@ -69,43 +69,42 @@ async function decodeAudioData(
 export const generateViralSuggestions = async (niche: string, tone: string, platforms: string[] = []) => {
   try {
     const ai = getAI();
-    const platformList = platforms.length > 0 ? platforms.join(', ') : "All major Social Platforms";
-    
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `
-      Role: Viral Content Strategist.
-      Task: Provide 3 ultra-current content suggestions for: "${niche}".
-      Target Platforms: ${platformList}.
-      Tone: ${tone}.
-      1. SEARCH: Look for real-time spikes in Google Trends.
-      2. SEARCH: Identify viral hooks on TikTok.
-      3. SYNTHESIZE: Create actionable ideas.
-      `,
+      contents: `Search Google Trends and social media data to identify 3 ultra-current viral marketing trends for the "${niche}" niche. 
+      Specifically look for:
+      1. TikTok/Reels specific viral patterns (visual styles, transitions).
+      2. Trending audio concepts or "sounds" currently gaining velocity.
+      3. Content hooks that are resulting in high retention.
+      
+      Tone to adopt: ${tone}. 
+      Target Platforms: ${platforms.join(', ')}.`,
       config: {
         tools: [{ googleSearch: {} }],
-        maxOutputTokens: 2048,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              type: { type: Type.STRING },
+              type: { type: Type.STRING, description: "Type of trend (e.g. Visual Pattern, Audio Trend, Content Hook)" },
               topic: { type: Type.STRING },
               description: { type: Type.STRING },
-              viralHook: { type: Type.STRING },
+              viralHook: { type: Type.STRING, description: "The specific opening phrase or visual action to hook viewers" },
+              trendingAudio: { type: Type.STRING, description: "Description of the style of audio or specific trending sound type" },
+              patternDescription: { type: Type.STRING, description: "Details on the visual/structural pattern of the trend" },
               suggestedAngle: { type: Type.STRING },
+              velocityScore: { type: Type.NUMBER, description: "Score from 1-100 indicating how fast this trend is growing" },
               platforms: { type: Type.ARRAY, items: { type: Type.STRING } }
             },
-            required: ["type", "topic", "description", "viralHook", "suggestedAngle", "platforms"]
+            required: ["type", "topic", "description", "viralHook", "trendingAudio", "patternDescription", "suggestedAngle", "velocityScore", "platforms"]
           }
         }
       }
     });
     return safeParseJSON(response.text);
-  } catch (error: any) {
-    console.error("Viral Suggestions Error:", error);
+  } catch (error) {
+    console.error("Viral Search Error:", error);
     return [];
   }
 };
@@ -115,9 +114,8 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: `Create social content for: "${prompt}". Tone: ${tone}. Keywords: ${keywords}. Platforms: ${platforms.join(', ')}.`,
+            contents: `Generate multi-platform optimized social posts for: "${prompt}". Tone: ${tone}. Keywords: ${keywords}. Platforms: ${platforms.join(', ')}.`,
             config: {
-                maxOutputTokens: 4096,
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
@@ -129,14 +127,7 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
                                 type: Type.OBJECT,
                                 properties: {
                                     platformId: { type: Type.STRING },
-                                    content: { type: Type.STRING },
-                                    metadata: { 
-                                        type: Type.OBJECT,
-                                        properties: {
-                                            title: { type: Type.STRING },
-                                            tags: { type: Type.STRING }
-                                        }
-                                    }
+                                    content: { type: Type.STRING }
                                 }
                             }
                         }
@@ -144,82 +135,39 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
                 }
             }
         });
-        return safeParseJSON(response.text, {});
+        return safeParseJSON(response.text, { generalContent: '', platformPosts: [] });
     } catch (e) {
         return { generalContent: '', platformPosts: [] };
     }
 };
 
-export const generateTwitterThread = async (topic: string, tone: string) => {
-  const ai = getAI();
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Create a highly engaging Twitter thread about: "${topic}". Tone: ${tone}.
-      Format the response as a JSON array of strings, where each string is a single tweet (strictly under 280 characters).
-      Include relevant hashtags and emojis.
-      The first tweet should be a compelling hook.
-      The last tweet should be a strong call to action (CTA).`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING }
-        }
-      }
-    });
-    return safeParseJSON(response.text);
-  } catch (error) {
-    console.error("Twitter Thread Gen Error", error);
-    return [];
-  }
-};
-
-export const generateAIImage = async (prompt: string, options: { aspectRatio?: string, style?: string, negativePrompt?: string, seed?: number } = {}) => {
+export const generateAIImage = async (prompt: string, options: { aspectRatio?: string, style?: string, negativePrompt?: string } = {}) => {
     try {
         const ai = getAI();
-        let finalPrompt = prompt;
-        if (options.style && options.style !== 'Standard') {
-          finalPrompt = `Artistic Style: ${options.style}. Subject: ${finalPrompt}`;
-        }
-        if (options.negativePrompt) {
-          finalPrompt += `. CRITICAL: Do NOT include: ${options.negativePrompt}`;
-        }
-
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
-            contents: { parts: [{ text: finalPrompt }] },
+            contents: { parts: [{ text: `${options.style ? options.style + ': ' : ''}${prompt}${options.negativePrompt ? '. CRITICAL: No ' + options.negativePrompt : ''}` }] },
             config: {
-                imageConfig: { aspectRatio: (options.aspectRatio || "1:1") as any },
-                seed: options.seed
+                imageConfig: { aspectRatio: (options.aspectRatio || "1:1") as any }
             }
         });
-        
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-            if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        }
-        return null;
+        // Correct retrieval of image part from nano banana candidates
+        const candidate = response.candidates?.[0];
+        if (!candidate) return null;
+        const part = candidate.content.parts.find(p => p.inlineData);
+        return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : null;
     } catch (e) { 
-      console.error("AI Image Generation Failed", e);
-      return null; 
+        console.error("Image Synthesis Failed:", e);
+        return null; 
     }
 };
 
 export const generateVideoScript = async (topic: string, tone: string, duration: string, platform: string) => {
-  const ai = getAI();
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Create a highly engaging video script for ${platform} (Short-form vertical video).
-      Topic: "${topic}"
-      Tone: ${tone}
-      Target Duration: ${duration}
-      Format:
-      - Title: Catchy Title
-      - Hook: Grab attention immediately (0-3s).
-      - Scenes: Breakdown of visual and audio track.
-      - CTA: Clear instruction.
-      `,
+      contents: `Create a vertical video script for ${platform}. Topic: "${topic}". Duration: ${duration}. Tone: ${tone}.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -231,11 +179,7 @@ export const generateVideoScript = async (topic: string, tone: string, duration:
               type: Type.ARRAY,
               items: {
                 type: Type.OBJECT,
-                properties: {
-                  section: { type: Type.STRING },
-                  visual: { type: Type.STRING },
-                  audio: { type: Type.STRING }
-                }
+                properties: { visual: { type: Type.STRING }, audio: { type: Type.STRING } }
               }
             },
             cta: { type: Type.STRING }
@@ -243,69 +187,30 @@ export const generateVideoScript = async (topic: string, tone: string, duration:
         }
       }
     });
-    return safeParseJSON(response.text);
-  } catch (error) {
-    console.error("Script Gen Error", error);
-    return null;
-  }
+    return safeParseJSON(response.text, null);
+  } catch (error) { return null; }
 };
 
 export const executeStrategicCommand = async (commandInput: string, contextData: any) => {
-  const ai = getAI();
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `User Command: "${commandInput}". Context: ${JSON.stringify(contextData)}. Provide a strategic pivot.`,
+      contents: `Command Hub Input: "${commandInput}". Analytics Context: ${JSON.stringify(contextData)}. Provide a tactical verdict.`,
       config: {
         tools: [{ googleSearch: {} }],
-        maxOutputTokens: 2048,
         responseMimeType: "application/json",
         responseSchema: {
             type: Type.OBJECT,
-            properties: {
-                suggestedAction: { type: Type.STRING }
-            }
+            properties: { suggestedAction: { type: Type.STRING } }
         }
       }
     });
     return { 
-        results: safeParseJSON(response.text, { suggestedAction: "Node busy. Try again." }), 
+        results: safeParseJSON(response.text, { suggestedAction: "Strategic Node busy." }), 
         sources: extractSources(response) 
     };
-  } catch (error) {
-    return { results: null, sources: [] };
-  }
-};
-
-export const getXFeed = async (topic: string = 'Marketing') => {
-    const ai = getAI();
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: `High-impact social posts about: "${topic}".`,
-            config: {
-                tools: [{ googleSearch: {} }],
-                maxOutputTokens: 1024,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            author: { type: Type.STRING },
-                            content: { type: Type.STRING },
-                            time: { type: Type.STRING },
-                            metrics: { 
-                                type: Type.OBJECT,
-                                properties: { likes: { type: Type.STRING }, views: { type: Type.STRING } }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        return safeParseJSON(response.text);
-    } catch (error) { return []; }
+  } catch (error) { return { results: null, sources: [] }; }
 };
 
 export const getMarketingInsights = async (data: any, useSearch: boolean, useThinking: boolean) => {
@@ -313,11 +218,10 @@ export const getMarketingInsights = async (data: any, useSearch: boolean, useThi
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: useThinking ? "gemini-3-pro-preview" : "gemini-3-flash-preview",
-            contents: `Analyze marketing data: ${JSON.stringify(data)}. Return 3 strategic insights.`,
+            contents: `Conduct deep reasoning on marketing stack: ${JSON.stringify(data)}. Provide 3 insights.`,
             config: {
                 tools: useSearch ? [{ googleSearch: {} }] : undefined,
                 thinkingConfig: useThinking ? { thinkingBudget: 2048 } : undefined,
-                maxOutputTokens: 2048,
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.ARRAY,
@@ -333,16 +237,12 @@ export const getMarketingInsights = async (data: any, useSearch: boolean, useThi
                 }
             }
         });
-        return { 
-            results: safeParseJSON(response.text), 
-            sources: extractSources(response) 
-        };
+        return { results: safeParseJSON(response.text), sources: extractSources(response) };
     } catch (e) { return { results: [], sources: [] }; }
 };
 
 export const startAIChat = (systemInstruction: string) => {
-    const ai = getAI();
-    return ai.chats.create({
+    return getAI().chats.create({
         model: 'gemini-3-flash-preview',
         config: { systemInstruction }
     });
@@ -356,14 +256,9 @@ export const generateSpeech = async (text: string) => {
       contents: [{ parts: [{ text }] }],
       config: {
         responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Kore' },
-          },
-        },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
       },
     });
-
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (base64Audio) {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -373,44 +268,78 @@ export const generateSpeech = async (text: string) => {
       source.connect(audioContext.destination);
       source.start();
     }
-  } catch (error) {
-    console.error("Speech Generation Error:", error);
-  }
+  } catch (error) { console.error("Synthesis Node Error:", error); }
 };
 
-export const getLinkedInFeed = async () => {
-  const ai = getAI();
+export const getXFeed = async (topic: string) => {
+    try {
+        const response = await getAI().models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: `Identify recent high-impact social posts about "${topic}" via Google Search.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            author: { type: Type.STRING },
+                            content: { type: Type.STRING },
+                            time: { type: Type.STRING },
+                            metrics: { type: Type.OBJECT, properties: { likes: { type: Type.STRING }, views: { type: Type.STRING } } }
+                        }
+                    }
+                }
+            }
+        });
+        return safeParseJSON(response.text);
+    } catch (e) { return []; }
+};
+
+export const generateTwitterThread = async (topic: string, tone: string) => {
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Generate 5 professional LinkedIn posts about SaaS marketing and growth.",
+      contents: `Synthesize a high-engagement Twitter thread about: "${topic}". Tone: ${tone}. Each node must be < 280 characters.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              author: { type: Type.STRING },
-              role: { type: Type.STRING },
-              content: { type: Type.STRING },
-              time: { type: Type.STRING },
-              metrics: { type: Type.STRING }
-            }
-          }
+          items: { type: Type.STRING }
         }
       }
     });
-    return safeParseJSON(response.text);
+    return safeParseJSON(response.text, []);
   } catch (error) { return []; }
 };
 
+export const getLinkedInFeed = async () => {
+    try {
+        const response = await getAI().models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: "5 Professional B2B LinkedIn posts for professional services.",
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: { author: { type: Type.STRING }, role: { type: Type.STRING }, content: { type: Type.STRING }, time: { type: Type.STRING }, metrics: { type: Type.STRING } }
+                    }
+                }
+            }
+        });
+        return safeParseJSON(response.text);
+    } catch (e) { return []; }
+};
+
 export const getYoutubeAnalytics = async () => {
-  const ai = getAI();
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Simulate a YouTube channel's analytics data including revenue and recent videos.",
+      contents: "Simulate channel analytics for a marketing-tech YouTube channel.",
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -419,48 +348,30 @@ export const getYoutubeAnalytics = async () => {
             revenue: { type: Type.NUMBER },
             recentVideos: {
               type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: { type: Type.STRING },
-                  title: { type: Type.STRING },
-                  views: { type: Type.STRING },
-                  likes: { type: Type.STRING },
-                  thumbnail: { type: Type.STRING }
-                }
-              }
+              items: { type: Type.OBJECT, properties: { id: { type: Type.STRING }, title: { type: Type.STRING }, views: { type: Type.STRING }, likes: { type: Type.STRING }, thumbnail: { type: Type.STRING } } }
             }
           }
         }
       }
     });
     return safeParseJSON(response.text, { revenue: 0, recentVideos: [] });
-  } catch (error) { return { revenue: 0, recentVideos: [] }; }
+  } catch (e) { return { revenue: 0, recentVideos: [] }; }
 };
 
 export const getDailyNews = async (location: string, language: string) => {
-  const ai = getAI();
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Search for daily marketing and business news in ${location} in ${language}.`,
+      contents: `Top business and tech news for ${location} in ${language}.`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              source: { type: Type.STRING },
-              headline: { type: Type.STRING },
-              summary: { type: Type.STRING },
-              time: { type: Type.STRING }
-            }
-          }
+          items: { type: Type.OBJECT, properties: { source: { type: Type.STRING }, headline: { type: Type.STRING }, summary: { type: Type.STRING }, time: { type: Type.STRING } } }
         }
       }
     });
     return safeParseJSON(response.text);
-  } catch (error) { return []; }
+  } catch (e) { return []; }
 };

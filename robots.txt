@@ -6,4 +6,4 @@ Disallow: /admin/
 Disallow: /settings/
 Disallow: /api/
 
-Sitemap: https://social-stack-marketing.vercel.app/sitemap.xml
+Sitemap: https://socialstack.io/sitemap.xml

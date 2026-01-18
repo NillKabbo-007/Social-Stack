@@ -71,9 +71,9 @@ Download now and dominate the social graph.`;
                 
                 <div className="space-y-12">
                   {[
-                    { phase: '01', title: 'Foundation & Auth', desc: 'OAuth 2.0 integration for Meta and Google. Next.js 14 App Router and high-speed SQLite/PostgreSQL caching layers.' },
-                    { phase: '02', title: 'Multi-API Sync Hub', desc: 'Integration of Meta Graph API (v19.0+), TikTok Business API, and PHP-based SMM providers (JAP/PeakSMM) via secure endpoints.' },
-                    { phase: '03', title: 'Dynamic Cloud Node', desc: 'Elastic infrastructure with selectable PHP versioning (5.6 - 8.4) to ensure compatibility with all legacy and modern SMM scripts.' },
+                    { phase: '01', title: 'Foundation & Auth', desc: 'OAuth 2.0 integration for Meta and Google. Vite-powered React SPA and high-speed SQLite caching layers.' },
+                    { phase: '02', title: 'Multi-API Sync Hub', desc: 'Integration of Meta Graph API (v19.0+), TikTok Business API, and PHP-based SMM providers via secure endpoints.' },
+                    { phase: '03', title: 'Dynamic Cloud Node', desc: 'Elastic infrastructure with selectable PHP versioning (5.6 - 8.4) for global script compatibility.' },
                     { phase: '04', title: 'Gemini Insight Core', desc: 'Gemini 3 Pro integration for the Strategic Advisor. Real-time budget pivots and trend grounding via Google Search.' }
                   ].map((item) => (
                     <div key={item.phase} className="relative pl-10 border-l-2 border-slate-700">
@@ -126,15 +126,15 @@ Download now and dominate the social graph.`;
             <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               <div className="glass-panel p-8 rounded-3xl border-slate-700/50">
                  <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white">
-                   <i className="fa-solid fa-cloud text-indigo-500"></i> Node.js SaaS Framework
+                   <i className="fa-solid fa-cloud text-indigo-500"></i> Vite + React Framework
                  </h3>
                  <div className="bg-black/50 p-6 rounded-2xl font-mono text-sm text-emerald-400 space-y-2 border border-slate-800">
-                    <p className="text-slate-500">// Initialize Production Client</p>
-                    <p>npm install @google/genai chart.js framer-motion lucide-react</p>
-                    <p>npm run build // Optimizing Assets</p>
-                    <p className="text-slate-500 mt-4">// Required Cloud Settings</p>
+                    <p className="text-slate-500">// Initialize Production Environment</p>
+                    <p>npm install @google/genai recharts lucide-react</p>
+                    <p>npm run build // Optimizing Assets via Vite</p>
+                    <p className="text-slate-500 mt-4">// Core Variables</p>
                     <p>NODE_ENV=production</p>
-                    <p>PHP_NODE_PROXY=enabled // Cross-Runtime Sync</p>
+                    <p>API_SYNC_INTERVAL=3600</p>
                  </div>
               </div>
             </div>
@@ -187,9 +187,9 @@ Download now and dominate the social graph.`;
               <div className="pt-6 border-t border-slate-700/50 space-y-4">
                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Build Manifest</h4>
                  {[
-                   { label: 'Web UI (Next.js)', status: 'Live', color: 'text-emerald-400' },
+                   { label: 'Frontend (Vite)', status: 'Live', color: 'text-emerald-400' },
                    { label: 'PHP Matrix Node', status: `v${selectedPHP}`, color: 'text-indigo-400' },
-                   { label: 'Mobile (APK)', status: 'In Review', color: 'text-amber-400' },
+                   { label: 'Mobile (Android)', status: 'Ready', color: 'text-emerald-400' },
                    { label: 'SMM API Engine', status: 'Optimal', color: 'text-emerald-400' }
                  ].map((s, i) => (
                    <div key={i} className="flex justify-between items-center text-[11px] font-bold">
