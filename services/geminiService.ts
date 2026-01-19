@@ -72,9 +72,9 @@ export const generateViralSuggestions = async (niche: string, tone: string, plat
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `Search Google Trends and live social media metrics to identify 4 ultra-current viral marketing patterns for the "${niche}" niche as of early 2026. 
-      Focus on patterns that are platform-specific:
-      - For TikTok/Reels: Identify specific visual "hooks" (e.g., specific camera movements or overlay styles) and audio profiles (e.g., "ASMR crunch", "Lo-fi synth build-up").
-      - For LinkedIn/Twitter: Identify content structures (e.g., "The Contrast Thread", "The contrarian deep-dive") and trending industry topics.
+      Identify:
+      - For Short-Form (TikTok/Reels): Specific visual hooks (e.g., transition styles), audio profiles (e.g., specific synth types or ASMR triggers), and "retention traps".
+      - For Text-Heavy (X/LinkedIn): Content structures (e.g., "The Contrast Pivot", "The Zero-Budget Scaling Thread") and trending industry debate topics.
       
       User's target tone: ${tone}. 
       Selected Channels: ${platforms.join(', ')}.`,
@@ -86,17 +86,17 @@ export const generateViralSuggestions = async (niche: string, tone: string, plat
           items: {
             type: Type.OBJECT,
             properties: {
-              type: { type: Type.STRING, description: "Category (e.g., Visual Pattern, Audio Wave, Hook Architecture)" },
+              type: { type: Type.STRING, description: "Pattern category (e.g., Visual Hook, Audio Wave, Debate Trigger)" },
               topic: { type: Type.STRING },
               description: { type: Type.STRING },
-              viralHook: { type: Type.STRING, description: "The specific opening phrase or visual action to hook viewers" },
-              trendingAudio: { type: Type.STRING, description: "Specific trending sound type or auditory mood" },
-              patternDescription: { type: Type.STRING, description: "Technical breakdown of why this works (the algorithm trigger)" },
+              viralHookText: { type: Type.STRING, description: "The specific opening phrase or visual action to hook viewers" },
+              trendingAudioProfile: { type: Type.STRING, description: "Specific trending sound type or auditory mood" },
+              algorithmReasoning: { type: Type.STRING, description: "Why this works (the algorithm trigger)" },
               suggestedAngle: { type: Type.STRING },
               velocityScore: { type: Type.NUMBER, description: "Score from 1-100 indicating search and share velocity" },
               platforms: { type: Type.ARRAY, items: { type: Type.STRING } }
             },
-            required: ["type", "topic", "description", "viralHook", "trendingAudio", "patternDescription", "suggestedAngle", "velocityScore", "platforms"]
+            required: ["type", "topic", "description", "viralHookText", "trendingAudioProfile", "algorithmReasoning", "suggestedAngle", "velocityScore", "platforms"]
           }
         }
       }
@@ -117,8 +117,7 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
             Target Vocal Signature: ${tone}. 
             Metadata Keywords: ${keywords}. 
             Output specifically for: ${platforms.join(', ')}. 
-            For short-form video platforms (TikTok/IG), provide a script-ready caption. 
-            For YouTube, return a high-CTR 'youtubeTitle'.`,
+            Ensure channel-specific formatting (e.g. LinkedIn likes white space, X likes brevity).`,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -164,35 +163,6 @@ export const generateAIImage = async (prompt: string, options: { aspectRatio?: s
         console.error("Image Synthesis Failed:", e);
         return null; 
     }
-};
-
-export const generateVideoScript = async (topic: string, tone: string, duration: string, platform: string) => {
-  try {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Create a vertical video script for ${platform}. Topic: "${topic}". Duration: ${duration}. Tone: ${tone}.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            hook: { type: Type.STRING },
-            script: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: { visual: { type: Type.STRING }, audio: { type: Type.STRING } }
-              }
-            },
-            cta: { type: Type.STRING }
-          }
-        }
-      }
-    });
-    return safeParseJSON(response.text, null);
-  } catch (error) { return null; }
 };
 
 export const executeStrategicCommand = async (commandInput: string, contextData: any) => {
@@ -279,7 +249,7 @@ export const getXFeed = async (topic: string) => {
     try {
         const response = await getAI().models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: `Identify recent high-impact social posts about "${topic}" via Google Search.`,
+            contents: `Identify 5 recent high-impact social posts or news items about "${topic}" via Google Search. Simulate an X feed.`,
             config: {
                 tools: [{ googleSearch: {} }],
                 responseMimeType: "application/json",

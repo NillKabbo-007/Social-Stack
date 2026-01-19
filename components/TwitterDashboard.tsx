@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, CartesianGrid, Tooltip, 
-  PieChart, Pie, Cell 
+  BarChart, Bar, Cell 
 } from 'recharts';
 import { getXFeed, generateTwitterThread } from '../services/geminiService';
 
@@ -25,19 +25,32 @@ const TWITTER_PROFILE = {
     avatar: 'https://ui-avatars.com/api/?name=Social+Stack&background=000&color=fff&bold=true'
 };
 
+const MOCK_MESSAGES = [
+    { id: 1, sender: 'Alex River', text: 'Hey, love the new dashboard update!', time: '10:30 AM', avatar: 'https://ui-avatars.com/api/?name=AR&background=random' },
+    { id: 2, sender: 'Growth Node', text: 'Protocol sync complete on our end.', time: '09:15 AM', avatar: 'https://ui-avatars.com/api/?name=GN&background=6366f1&color=fff' },
+    { id: 3, sender: 'Sarah Chen', text: 'Can we schedule a call about the API?', time: 'Yesterday', avatar: 'https://ui-avatars.com/api/?name=SC&background=random' }
+];
+
 const TwitterDashboard: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [feed, setFeed] = useState<any[]>([]);
   const [scheduledTweets, setScheduledTweets] = useState<any[]>([
-      { id: 1, content: ['Launching our new feature next week! 🚀 #TechNews'], time: '2026-02-25T14:00', type: 'text' },
-      { id: 2, content: ['Thread: 5 ways to optimize your React code 🧵👇', '1. Use useMemo sparingly...'], time: '2026-02-26T09:00', type: 'thread' }
+      { id: 1, content: 'Launching our new feature next week! 🚀 #TechNews', time: '2026-02-25T14:00', type: 'text' },
   ]);
   
   const [composerTweets, setComposerTweets] = useState<string[]>(['']); 
+  const [scheduleTime, setScheduleTime] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [loadingFeed, setLoadingFeed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'timeline' | 'queue'>('timeline');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'queue' | 'dms'>('timeline');
+  const [selectedDm, setSelectedDm] = useState<any>(null);
   
+  const [campaignGoals, setCampaignGoals] = useState({
+      engagement: { current: 3.2, target: 5.0 },
+      reach: { current: 12400, target: 25000 },
+      conversion: { current: 1.8, target: 3.0 }
+  });
+
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
   const [aiTone, setAiTone] = useState('Viral / Hype');
@@ -106,9 +119,23 @@ const TwitterDashboard: React.FC = () => {
   const handlePostThread = () => {
     if (composerTweets.some(t => !t.trim())) return;
     setIsPosting(true);
+    
     setTimeout(() => {
-      alert("Thread successfully transmitted to the X network!");
+      if (scheduleTime) {
+          const newScheduled = {
+              id: Date.now(),
+              content: composerTweets[0],
+              time: scheduleTime,
+              type: composerTweets.length > 1 ? 'thread' : 'text'
+          };
+          setScheduledTweets(prev => [newScheduled, ...prev]);
+          alert("Sequence queued in broadcast buffer for: " + scheduleTime);
+      } else {
+          alert("Thread successfully transmitted to the X network!");
+          loadFeed();
+      }
       setComposerTweets(['']);
+      setScheduleTime('');
       setIsPosting(false);
     }, 2000);
   };
@@ -127,7 +154,7 @@ const TwitterDashboard: React.FC = () => {
   }
 
   return (
-      <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-20 select-none">
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 bg-gradient-to-r from-black to-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl relative overflow-hidden text-white">
             <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                 <i className="fa-brands fa-x-twitter text-9xl text-white"></i>
@@ -144,35 +171,35 @@ const TwitterDashboard: React.FC = () => {
                 </div>
             </div>
             <div className="relative z-10 flex gap-3">
-                 <button onClick={() => alert("Exporting report...")} className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold uppercase text-xs flex items-center gap-2 transition-all">
-                    <i className="fa-solid fa-file-arrow-down"></i> Export PDF
-                 </button>
-                 <button onClick={() => setShowAiModal(true)} className="px-5 py-3 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-xl font-bold uppercase text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#1d9bf0]/20">
-                    <i className="fa-solid fa-wand-magic-sparkles"></i> AI Writer
+                 <button onClick={() => setShowAiModal(true)} className="px-6 py-4 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-3 transition-all shadow-lg shadow-[#1d9bf0]/20">
+                    <i className="fa-solid fa-wand-magic-sparkles text-sm"></i> AI Synthesis
                  </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="space-y-8">
-                  <div className="glass-panel p-8 rounded-[2.5rem] border-slate-700/50 bg-white/5 shadow-2xl">
-                      <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Broadcaster</h3>
-                        <button onClick={() => setShowAiModal(true)} className="text-[#1d9bf0] text-xs font-bold uppercase tracking-tighter hover:underline">AI Rewrite</button>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* COMPOSER & ANALYTICS COLUMN */}
+              <div className="lg:col-span-4 space-y-8">
+                  {/* BROADCASTER COMPOSER */}
+                  <div className="glass-panel p-8 rounded-[3rem] border-white/5 bg-white/5 shadow-2xl space-y-6 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#1d9bf0] to-transparent opacity-50"></div>
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-[10px] font-tech font-black text-indigo-400 uppercase tracking-[0.3em]">Broadcaster Node</h3>
+                        <span className="text-[10px] text-slate-600 font-bold uppercase tracking-tighter">Live Network Mode</span>
                       </div>
                       
-                      <div className="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar pr-1">
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar pr-1">
                         {composerTweets.map((tweet, idx) => (
-                          <div key={idx} className="relative group animate-in slide-in-from-right-4 duration-300">
-                            <div className="absolute -left-3 top-0 bottom-0 w-0.5 bg-slate-800 rounded-full"></div>
+                          <div key={idx} className="relative animate-in slide-in-from-right-4 duration-300">
                             <textarea 
                               value={tweet}
                               onChange={(e) => handleTweetChange(idx, e.target.value)}
-                              placeholder={idx === 0 ? "What's happening?" : "Add another tweet..."}
-                              className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 text-sm text-white resize-none h-32 focus:ring-1 focus:ring-[#1d9bf0] transition-all shadow-inner font-medium"
+                              placeholder={idx === 0 ? "Identify transmission payload..." : "Append node to thread..."}
+                              className="w-full bg-slate-950 border border-white/5 rounded-[1.5rem] p-6 text-sm text-white resize-none h-32 focus:ring-1 focus:ring-[#1d9bf0] transition-all shadow-inner font-medium placeholder-slate-800"
                             />
                             <div className="absolute bottom-4 right-4 flex items-center gap-3">
-                              <span className={`text-[10px] font-tech font-black ${tweet.length > 280 ? 'text-rose-500' : 'text-slate-600'}`}>{tweet.length}/280</span>
+                              <span className={`text-[9px] font-tech font-black px-2 py-1 rounded bg-black/40 ${tweet.length > 280 ? 'text-rose-500' : 'text-slate-600'}`}>{tweet.length}/280</span>
                               {composerTweets.length > 1 && (
                                 <button onClick={() => handleRemoveTweet(idx)} className="text-slate-700 hover:text-rose-500 transition-colors"><i className="fa-solid fa-trash-can text-xs"></i></button>
                               )}
@@ -181,82 +208,228 @@ const TwitterDashboard: React.FC = () => {
                         ))}
                       </div>
 
-                      <div className="mt-6 flex justify-between gap-4">
-                        <button onClick={handleAddTweet} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Add Node</button>
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <div className="flex justify-between items-center px-1">
+                            <label className="text-[9px] font-tech text-slate-500 uppercase tracking-[0.2em] font-black">Schedule Node (Optional)</label>
+                            <i className="fa-solid fa-clock text-[#1d9bf0] text-[10px]"></i>
+                        </div>
+                        <input 
+                            type="datetime-local" 
+                            value={scheduleTime}
+                            onChange={(e) => setScheduleTime(e.target.value)}
+                            className="w-full bg-slate-950 border border-white/5 rounded-xl px-4 py-3 text-[10px] font-black text-white uppercase outline-none focus:border-indigo-500/50 shadow-inner"
+                        />
+                      </div>
+
+                      <div className="flex gap-4">
+                        <button onClick={handleAddTweet} className="flex-1 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/5">Add Node</button>
                         <button 
                           onClick={handlePostThread}
                           disabled={isPosting || composerTweets.some(t => t.length > 280 || t.length === 0)}
-                          className="flex-1 py-4 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 btn-3d"
+                          className="flex-1 py-4 bg-white text-black hover:bg-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-30 btn-3d"
                         >
-                          {isPosting ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-brands fa-x-twitter mr-2"></i>}
-                          Broadcast
+                          {isPosting ? <i className="fa-solid fa-sync fa-spin"></i> : scheduleTime ? 'Queue Seq' : 'Broadcast Now'}
                         </button>
                       </div>
                   </div>
 
-                  <div className="glass-panel p-6 rounded-3xl border-slate-700/50">
-                      <h3 className="text-sm font-black text-white uppercase tracking-widest mb-4">Engagement Pulse</h3>
-                      <div className="h-64">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={ANALYTICS_DATA}>
-                                <defs><linearGradient id="colorImp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#1d9bf0" stopOpacity={0.3}/><stop offset="95%" stopColor="#1d9bf0" stopOpacity={0}/></linearGradient></defs>
-                                <XAxis dataKey="day" hide /><Tooltip contentStyle={{ backgroundColor: '#000', border: 'none' }} />
-                                <Area type="monotone" dataKey="impressions" stroke="#1d9bf0" strokeWidth={3} fillOpacity={1} fill="url(#colorImp)" />
-                            </AreaChart>
-                         </ResponsiveContainer>
+                  {/* CAMPAIGN GOALS */}
+                  <div className="glass-panel p-8 rounded-[3rem] border-indigo-500/20 bg-indigo-600/5 space-y-8">
+                      <div className="flex justify-between items-center">
+                          <h3 className="text-[10px] font-tech font-black text-indigo-400 uppercase tracking-[0.3em]">Campaign Strategy</h3>
+                          <i className="fa-solid fa-bullseye text-indigo-500 animate-pulse"></i>
                       </div>
+                      
+                      <div className="space-y-6">
+                          {[
+                              { label: 'Engagement Rate', val: campaignGoals.engagement.current, target: campaignGoals.engagement.target, unit: '%' },
+                              { label: 'Network Reach', val: campaignGoals.reach.current, target: campaignGoals.reach.target, unit: '' },
+                              { label: 'Conversion Node', val: campaignGoals.conversion.current, target: campaignGoals.conversion.target, unit: '%' }
+                          ].map((goal, i) => (
+                              <div key={i} className="space-y-2">
+                                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                                      <span className="text-slate-400">{goal.label}</span>
+                                      <span className="text-white">{goal.val}{goal.unit} / {goal.target}{goal.unit}</span>
+                                  </div>
+                                  <div className="h-2 bg-slate-950 rounded-full border border-white/5 overflow-hidden">
+                                      <div 
+                                        className="h-full bg-indigo-500 shadow-[0_0_10px_#6366f1]" 
+                                        style={{ width: `${Math.min(100, (goal.val / goal.target) * 100)}%` }}
+                                      ></div>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                      <button className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all">Adjust KPIs</button>
                   </div>
               </div>
 
-              <div className="lg:col-span-2 space-y-8">
-                  <div className="glass-panel p-6 rounded-[2rem] border-slate-700/50 min-h-[400px]">
-                      <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
-                          <div className="flex gap-4">
-                              <button onClick={() => setActiveTab('timeline')} className={`text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'timeline' ? 'text-[#1d9bf0]' : 'text-slate-500'}`}>Timeline</button>
-                              <button onClick={() => setActiveTab('queue')} className={`text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'queue' ? 'text-[#1d9bf0]' : 'text-slate-500'}`}>Queue</button>
+              {/* TIMELINE & MESSAGES COLUMN */}
+              <div className="lg:col-span-8 space-y-8">
+                  <div className="glass-panel rounded-[3.5rem] border-white/5 overflow-hidden shadow-2xl flex flex-col min-h-[700px]">
+                      <div className="p-8 border-b border-white/5 bg-slate-900/40 flex flex-col md:flex-row justify-between items-center gap-6">
+                          <div className="flex bg-slate-950/80 p-1 rounded-2xl border border-white/5">
+                              {[
+                                { id: 'timeline', label: 'Identity Stream', icon: 'fa-timeline' },
+                                { id: 'queue', label: 'Broadcast Queue', icon: 'fa-clock-rotate-left' },
+                                { id: 'dms', label: 'Signal Inbox', icon: 'fa-comment-dots' }
+                              ].map(tab => (
+                                <button 
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as any)}
+                                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                >
+                                    <i className={`fa-solid ${tab.icon}`}></i>
+                                    {tab.label}
+                                </button>
+                              ))}
                           </div>
-                          <button onClick={() => alert("Downloading archive...")} className="text-[10px] font-black text-indigo-400 uppercase flex items-center gap-1.5"><i className="fa-solid fa-download"></i> Get Archive</button>
+                          
+                          <div className="flex items-center gap-4">
+                             <div className="relative group">
+                                <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-[10px]"></i>
+                                <input type="text" placeholder="FILTER FEED..." className="bg-slate-950 border border-white/5 rounded-xl pl-10 pr-4 py-2.5 text-[9px] font-tech font-black text-white outline-none focus:ring-1 focus:ring-indigo-500" />
+                             </div>
+                             <button onClick={loadFeed} className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all"><i className="fa-solid fa-rotate-right text-xs"></i></button>
+                          </div>
                       </div>
 
-                      <div className="space-y-4">
-                          {loadingFeed ? (
-                            <div className="py-20 text-center space-y-4 text-slate-600">
-                                <i className="fa-solid fa-satellite fa-spin text-2xl"></i>
-                                <p className="text-[10px] font-tech font-black uppercase tracking-widest">Polling X Network...</p>
+                      <div className="flex-1 p-8 bg-slate-950/20 overflow-y-auto no-scrollbar scroll-smooth">
+                        {loadingFeed ? (
+                            <div className="py-40 text-center space-y-6 text-slate-600 opacity-20">
+                                <i className="fa-solid fa-satellite fa-spin text-6xl"></i>
+                                <p className="text-sm font-tech font-black uppercase tracking-[0.4em]">Synchronizing Network Nodes...</p>
                             </div>
-                          ) : activeTab === 'timeline' ? (
-                              feed.map((post, i) => (
-                                  <div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:bg-slate-800/50 transition-colors group">
-                                      <div className="flex gap-3">
-                                          <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex-shrink-0 flex items-center justify-center text-slate-400 font-bold">{post.author ? post.author[0] : 'X'}</div>
-                                          <div className="flex-1">
-                                              <div className="flex justify-between items-start">
-                                                  <div>
-                                                      <h4 className="font-bold text-white text-sm">{post.author}</h4>
-                                                      <p className="text-slate-500 text-xs">@{post.author?.toLowerCase().replace(/\s/g, '')} · {post.time}</p>
-                                                  </div>
-                                                  <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <button className="text-slate-500 hover:text-white"><i className="fa-solid fa-download text-xs"></i></button>
-                                                      <i className="fa-brands fa-x-twitter text-slate-600"></i>
-                                                  </div>
-                                              </div>
-                                              <p className="text-slate-300 text-sm mt-2 whitespace-pre-wrap leading-relaxed font-medium">{post.content}</p>
-                                              <div className="mt-4 flex gap-6 text-[10px] font-tech font-black text-slate-600 uppercase">
-                                                  <span className="flex items-center gap-1.5"><i className="fa-regular fa-comment"></i> 0</span>
-                                                  <span className="flex items-center gap-1.5"><i className="fa-solid fa-retweet"></i> 0</span>
-                                                  <span className="flex items-center gap-1.5"><i className="fa-regular fa-heart"></i> {post.metrics?.likes || 0}</span>
-                                                  <span className="flex items-center gap-1.5"><i className="fa-solid fa-chart-simple"></i> {post.metrics?.views || 0}</span>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </div>
-                              ))
-                          ) : (
-                              <div className="text-center py-20 text-slate-500 border-2 border-dashed border-slate-800 rounded-3xl">
-                                <i className="fa-solid fa-clock-rotate-left text-4xl mb-4 opacity-20"></i>
-                                <p className="text-xs font-black uppercase tracking-widest">No nodes in queue</p>
-                              </div>
-                          )}
+                        ) : activeTab === 'timeline' ? (
+                            <div className="grid gap-8">
+                                {feed.map((post, i) => (
+                                    <div key={i} className="p-8 bg-slate-900/40 border border-white/5 rounded-[2.5rem] hover:bg-slate-900/80 transition-all group relative overflow-hidden">
+                                        <div className="flex gap-6 items-start relative z-10">
+                                            <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/5 flex-shrink-0 flex items-center justify-center text-slate-400 font-bold shadow-inner">
+                                                {post.author ? post.author[0] : 'X'}
+                                            </div>
+                                            <div className="flex-1 space-y-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-black text-white text-base uppercase tracking-tight">{post.author}</h4>
+                                                            <i className="fa-solid fa-circle-check text-[#1d9bf0] text-xs"></i>
+                                                        </div>
+                                                        <p className="text-slate-500 text-[10px] font-tech uppercase tracking-widest mt-1">@{post.author?.toLowerCase().replace(/\s/g, '')} · {post.time}</p>
+                                                    </div>
+                                                    <i className="fa-brands fa-x-twitter text-slate-800 text-3xl opacity-20"></i>
+                                                </div>
+                                                <p className="text-slate-300 text-sm leading-relaxed font-medium">"{post.content}"</p>
+                                                
+                                                <div className="pt-6 border-t border-white/5 flex flex-wrap gap-8 items-center">
+                                                    <div className="flex items-center gap-3 group/stat cursor-pointer">
+                                                        <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover/stat:bg-rose-500 group-hover/stat:text-white transition-all shadow-inner"><i className="fa-solid fa-heart"></i></div>
+                                                        <div><p className="text-[11px] font-black text-white leading-none">{post.metrics?.likes || '0'}</p><p className="text-[8px] text-slate-600 uppercase font-black tracking-widest mt-1">Hearts</p></div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 group/stat cursor-pointer">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover/stat:bg-indigo-500 group-hover/stat:text-white transition-all shadow-inner"><i className="fa-solid fa-chart-line"></i></div>
+                                                        <div><p className="text-[11px] font-black text-white leading-none">{post.metrics?.views || '0'}</p><p className="text-[8px] text-slate-600 uppercase font-black tracking-widest mt-1">Signals</p></div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 group/stat cursor-pointer">
+                                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/stat:bg-white group-hover/stat:text-black transition-all shadow-inner"><i className="fa-solid fa-retweet"></i></div>
+                                                        <div><p className="text-[11px] font-black text-white leading-none">0</p><p className="text-[8px] text-slate-600 uppercase font-black tracking-widest mt-1">Echoes</p></div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 group/stat cursor-pointer">
+                                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/stat:bg-white group-hover/stat:text-black transition-all shadow-inner"><i className="fa-solid fa-comment"></i></div>
+                                                        <div><p className="text-[11px] font-black text-white leading-none">0</p><p className="text-[8px] text-slate-600 uppercase font-black tracking-widest mt-1">Nodes</p></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : activeTab === 'queue' ? (
+                            <div className="grid gap-4">
+                                {scheduledTweets.length > 0 ? scheduledTweets.map((t) => (
+                                    <div key={t.id} className="p-6 bg-slate-900/60 border-2 border-indigo-500/20 rounded-3xl flex items-center justify-between group transition-all hover:bg-slate-900 shadow-xl">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 text-xl"><i className="fa-solid fa-calendar-check"></i></div>
+                                            <div>
+                                                <p className="text-xs font-bold text-white line-clamp-1 mb-1">"{t.content}"</p>
+                                                <p className="text-[10px] font-tech text-slate-500 uppercase tracking-widest">TRANSMISSION AT: {t.time.replace('T', ' ')}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button className="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all"><i className="fa-solid fa-pen-to-square text-xs"></i></button>
+                                            <button onClick={() => setScheduledTweets(prev => prev.filter(st => st.id !== t.id))} className="w-10 h-10 rounded-xl bg-rose-600/10 text-rose-500 hover:bg-rose-600 hover:text-white transition-all"><i className="fa-solid fa-trash-can text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="text-center py-40 text-slate-600 border-4 border-dashed border-white/5 rounded-[3rem]">
+                                        <i className="fa-solid fa-clock-rotate-left text-6xl mb-6 opacity-10"></i>
+                                        <p className="text-[11px] font-tech font-black uppercase tracking-[0.4em]">Vault Empty: No Nodes Queued</p>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col lg:flex-row gap-8 h-[550px]">
+                                {/* DM LIST */}
+                                <div className="w-full lg:w-72 bg-slate-950/40 rounded-3xl border border-white/5 p-4 space-y-2 overflow-y-auto no-scrollbar">
+                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-4 ml-2">Active Signals</p>
+                                    {MOCK_MESSAGES.map(dm => (
+                                        <button 
+                                            key={dm.id} 
+                                            onClick={() => setSelectedDm(dm)}
+                                            className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all group ${selectedDm?.id === dm.id ? 'bg-indigo-600 text-white shadow-xl' : 'hover:bg-white/5 text-slate-400'}`}
+                                        >
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex-shrink-0">
+                                                <img src={dm.avatar} className="w-full h-full rounded-full object-cover" />
+                                            </div>
+                                            <div className="text-left min-w-0 flex-1">
+                                                <p className={`text-[11px] font-black uppercase truncate ${selectedDm?.id === dm.id ? 'text-white' : 'text-slate-300'}`}>{dm.sender}</p>
+                                                <p className={`text-[9px] truncate mt-0.5 ${selectedDm?.id === dm.id ? 'text-indigo-100' : 'text-slate-600 font-medium'}`}>{dm.text}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* CHAT WINDOW */}
+                                <div className="flex-1 bg-slate-950/60 rounded-[2.5rem] border border-white/5 flex flex-col overflow-hidden relative">
+                                    {selectedDm ? (
+                                        <>
+                                            <div className="p-6 border-b border-white/5 bg-slate-900/40 flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-slate-800"><img src={selectedDm.avatar} className="w-full h-full rounded-full object-cover" /></div>
+                                                <div>
+                                                    <p className="text-[11px] font-black text-white uppercase tracking-widest">{selectedDm.sender}</p>
+                                                    <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-widest">Active Signal Node</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 p-8 space-y-6 overflow-y-auto no-scrollbar">
+                                                <div className="flex justify-start">
+                                                    <div className="max-w-[80%] p-5 bg-slate-900 border border-white/5 rounded-3xl rounded-tl-none shadow-xl">
+                                                        <p className="text-xs text-slate-300 leading-relaxed font-medium">"{selectedDm.text}"</p>
+                                                        <p className="text-[8px] text-slate-600 mt-2 font-tech uppercase">{selectedDm.time}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end">
+                                                    <div className="max-w-[80%] p-5 bg-indigo-600 text-white rounded-3xl rounded-tr-none shadow-2xl">
+                                                        <p className="text-xs leading-relaxed font-black uppercase tracking-tight">Identity Verified. Stand by for protocol handshake.</p>
+                                                        <p className="text-[8px] text-indigo-200 mt-2 font-tech uppercase tracking-widest">Just Now</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="p-6 bg-slate-900/80 border-t border-white/5">
+                                                <div className="relative group">
+                                                    <input type="text" placeholder="Transmit reply to node..." className="w-full bg-slate-950 border border-white/5 rounded-2xl pl-6 pr-16 py-4 text-xs font-black text-white shadow-inner outline-none focus:ring-1 focus:ring-indigo-500" />
+                                                    <button className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all"><i className="fa-solid fa-paper-plane text-xs"></i></button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-slate-700 space-y-6 opacity-20">
+                                            <i className="fa-solid fa-satellite-dish text-8xl"></i>
+                                            <p className="text-[10px] font-tech font-black uppercase tracking-[0.4em]">Select Node to Initialize Uplink</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                       </div>
                   </div>
               </div>

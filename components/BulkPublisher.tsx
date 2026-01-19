@@ -29,9 +29,9 @@ interface ViralSuggestion {
     type: string;
     topic: string;
     description: string;
-    viralHook: string;
-    trendingAudio: string;
-    patternDescription: string;
+    viralHookText: string;
+    trendingAudioProfile: string;
+    algorithmReasoning: string;
     suggestedAngle: string;
     velocityScore: number;
     platforms: string[];
@@ -217,6 +217,33 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResults, setSyncResults] = useState<PostStatus[]>([]);
 
+  // Media Library Selection Filters & Sorting
+  const [mediaSearchQuery, setMediaSearchQuery] = useState('');
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<'all' | 'image' | 'video'>('all');
+  const [mediaSortOption, setMediaSortOption] = useState<'date-desc' | 'date-asc' | 'size-desc' | 'size-asc'>('date-desc');
+
+  const filteredAndSortedMedia = useMemo(() => {
+    let items = mediaLibrary.filter(m => {
+        const matchesSearch = m.name.toLowerCase().includes(mediaSearchQuery.toLowerCase());
+        const matchesType = mediaTypeFilter === 'all' || m.type === mediaTypeFilter;
+        return matchesSearch && matchesType;
+    });
+
+    items.sort((a, b) => {
+        if (mediaSortOption.startsWith('date')) {
+            const timeA = new Date(a.date).getTime();
+            const timeB = new Date(b.date).getTime();
+            return mediaSortOption === 'date-desc' ? timeB - timeA : timeA - timeB;
+        } else {
+            const sizeA = parseFloat(a.size || '0');
+            const sizeB = parseFloat(b.size || '0');
+            return mediaSortOption === 'size-desc' ? sizeB - sizeA : sizeA - sizeB;
+        }
+    });
+
+    return items;
+  }, [mediaLibrary, mediaSearchQuery, mediaTypeFilter, mediaSortOption]);
+
   const [drafts, setDrafts] = useState<DraftPost[]>(() => {
     const saved = localStorage.getItem('socialstack_drafts');
     return saved ? JSON.parse(saved) : [];
@@ -236,7 +263,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   };
 
   const applySuggestion = (s: ViralSuggestion) => {
-    setPrompt(`${s.topic}: ${s.description}. Strategy: ${s.suggestedAngle}.`);
+    setPrompt(`${s.topic}: ${s.description}. Strategic Hook: ${s.viralHookText}. Recommended Angle: ${s.suggestedAngle}.`);
     setKeywords(s.topic.split(' ').slice(0, 3).join(', '));
     if (s.velocityScore > 80) setTone('Viral / Hype');
   };
@@ -296,6 +323,21 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
         timestamp: new Date().toLocaleString()
     };
     setDrafts(prev => [newDraft, ...prev]);
+  };
+
+  const loadDraft = (draft: DraftPost) => {
+      setPrompt(draft.content);
+      if (draft.title) setYoutubeTitle(draft.title);
+      setSelectedPlatforms([draft.platformId]);
+      const matchedMedia = mediaLibrary.find(m => m.url === draft.mediaUrl);
+      if (matchedMedia) setSelectedMedia(matchedMedia);
+      setGeneratedContent(null); // Clear previous previews to show new draft state
+  };
+
+  const purgeDraft = (id: string) => {
+      if(confirm('Authorize destructive purge of this draft node?')) {
+          setDrafts(prev => prev.filter(d => d.id !== id));
+      }
   };
 
   return (
@@ -367,18 +409,18 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                                     <div className="space-y-4 relative z-10">
                                         <div className="p-3 bg-black/40 rounded-xl border border-white/5">
                                             <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                                                <i className="fa-solid fa-magnet text-[8px]"></i> Viral Hook
+                                                <i className="fa-solid fa-magnet text-[8px]"></i> Real-time Hook
                                             </p>
-                                            <p className="text-[10px] text-slate-300 italic leading-relaxed">"{s.viralHook}"</p>
+                                            <p className="text-[10px] text-slate-300 italic leading-relaxed">"{s.viralHookText}"</p>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-1 gap-3">
                                             <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Visual Pattern</p>
-                                                <p className="text-[9px] text-slate-400 font-medium line-clamp-2">{s.patternDescription}</p>
+                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Algorithm Trigger</p>
+                                                <p className="text-[9px] text-slate-400 font-medium leading-snug">{s.algorithmReasoning}</p>
                                             </div>
                                             <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Audio Profile</p>
-                                                <p className="text-[9px] text-slate-400 font-medium line-clamp-2">{s.trendingAudio}</p>
+                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Trending Audio Profile</p>
+                                                <p className="text-[9px] text-indigo-300 font-black italic">{s.trendingAudioProfile}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -403,13 +445,100 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                     </div>
                 ) : mediaTab === 'upload' ? (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-300 relative z-10">
-                        <div className="grid grid-cols-4 gap-4 max-h-[420px] overflow-y-auto no-scrollbar scroll-smooth pr-1">
-                            {mediaLibrary.map(item => (
+                        {/* Media Grid Refining Hub */}
+                        <div className="space-y-4 p-2">
+                             <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-[10px]"></i>
+                                    <input 
+                                        type="text" 
+                                        value={mediaSearchQuery}
+                                        onChange={e => setMediaSearchQuery(e.target.value)}
+                                        placeholder="Search Assets..."
+                                        className="w-full bg-slate-950 border border-white/5 rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold text-white shadow-inner focus:border-indigo-500/50 outline-none"
+                                    />
+                                </div>
+                                <select 
+                                    value={mediaSortOption} 
+                                    onChange={e => setMediaSortOption(e.target.value as any)}
+                                    className="bg-slate-950 border border-white/5 rounded-xl px-2 py-2 text-[10px] font-black text-slate-500 uppercase outline-none"
+                                >
+                                    <option value="date-desc">Newest</option>
+                                    <option value="date-asc">Oldest</option>
+                                    <option value="size-desc">Largest</option>
+                                    <option value="size-asc">Smallest</option>
+                                </select>
+                             </div>
+                             
+                             <div className="flex gap-2 bg-slate-950/60 p-1 rounded-xl border border-white/5">
+                                {['all', 'image', 'video'].map(type => (
+                                    <button 
+                                        key={type} 
+                                        onClick={() => setMediaTypeFilter(type as any)}
+                                        className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${mediaTypeFilter === type ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-400'}`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4 max-h-[380px] overflow-y-auto no-scrollbar scroll-smooth pr-1">
+                            {filteredAndSortedMedia.length > 0 ? filteredAndSortedMedia.map(item => (
                                 <div key={item.id} onClick={() => setSelectedMedia(selectedMedia?.id === item.id ? null : item)} className={`aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition-all relative group shadow-lg ${selectedMedia?.id === item.id ? 'border-indigo-500 scale-95 shadow-indigo-500/20 ring-4 ring-indigo-500/20' : 'border-slate-800 hover:border-slate-600'}`}>
                                     {item.type === 'video' ? <div className="w-full h-full bg-black flex items-center justify-center text-indigo-500"><i className="fa-solid fa-video text-xl"></i></div> : <img src={item.url} className="w-full h-full object-cover" loading="lazy" />}
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><span className="text-[8px] font-black uppercase text-white">{item.type}</span></div>
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center flex-col gap-1 p-2">
+                                        <span className="text-[7px] font-black uppercase text-white bg-indigo-600 px-1.5 py-0.5 rounded shadow-lg">{item.type}</span>
+                                        <span className="text-[6px] text-slate-300 font-tech truncate w-full text-center">{item.size || 'N/A'}</span>
+                                    </div>
+                                    <div className="absolute bottom-1 right-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                        <i className="fa-solid fa-calendar-day text-[6px] text-white"></i>
+                                    </div>
                                 </div>
-                            ))}
+                            )) : (
+                                <div className="col-span-full py-20 text-center opacity-30">
+                                    <i className="fa-solid fa-filter-circle-xmark text-4xl mb-4"></i>
+                                    <p className="text-[10px] font-tech uppercase tracking-[0.2em]">Refinement Yielded 0 Results</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : mediaTab === 'drafts' ? (
+                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 relative z-10">
+                        <div className="space-y-4 max-h-[580px] overflow-y-auto no-scrollbar pr-1 scroll-smooth">
+                            {drafts.length > 0 ? drafts.map((draft) => {
+                                const platform = PLATFORMS.find(p => p.id === draft.platformId);
+                                return (
+                                    <div key={draft.id} className="p-5 bg-slate-950/80 border border-white/5 rounded-3xl space-y-4 hover:border-indigo-500/30 transition-all group/draft shadow-inner relative overflow-hidden">
+                                        <div className="flex justify-between items-start relative z-10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 group-hover/draft:bg-indigo-600 group-hover/draft:text-white transition-all">
+                                                    <i className={platform?.icon || 'fa-solid fa-file'}></i>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-white uppercase tracking-tight truncate max-w-[120px]">{draft.title || 'Untitled Draft'}</p>
+                                                    <p className="text-[7px] text-slate-600 font-tech uppercase tracking-widest">{draft.timestamp}</p>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => purgeDraft(draft.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-700 hover:text-rose-500 transition-colors">
+                                                <i className="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic">"{draft.content}"</p>
+                                        <button 
+                                            onClick={() => loadDraft(draft)} 
+                                            className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-[0.2em] transition-all"
+                                        >
+                                            Load into Hub
+                                        </button>
+                                    </div>
+                                );
+                            }) : (
+                                <div className="py-32 text-center space-y-6 opacity-20">
+                                    <i className="fa-solid fa-inbox text-5xl"></i>
+                                    <p className="text-[10px] font-tech uppercase tracking-[0.4em]">Vault Empty: 0 Draft Nodes</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ) : (
