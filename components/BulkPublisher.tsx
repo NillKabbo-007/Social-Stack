@@ -362,7 +362,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-4 space-y-8 lg:sticky lg:top-24">
-            <div className="glass-panel p-8 rounded-[3rem] space-y-10 relative overflow-hidden border-indigo-500/10 bg-indigo-500/5 shadow-2xl">
+            <div className="glass-panel p-8 rounded-[3rem] space-y-10 relative overflow-hidden border-indigo-500/10 bg-indigo-600/5 shadow-2xl">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-600/5 blur-[80px] -mr-20 -mt-20"></div>
                 <div className="flex justify-between items-center relative z-10 border-b border-white/5 pb-6">
                     <h3 className="text-[11px] font-tech text-indigo-400 uppercase tracking-[0.3em] font-black flex items-center gap-2">

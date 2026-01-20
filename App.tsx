@@ -201,7 +201,7 @@ const App: React.FC = () => {
                 </button>
             </div>
             
-            <button onClick={() => setShowLanguageMenu(!showLanguageMenu)} className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 hover:text-white">
+            <button onClick={() => setCurrentRoute(AppRoute.SETTINGS)} className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 hover:text-white">
                 {currentLang ? <span className="text-lg">{currentLang.flag}</span> : <i className="fa-solid fa-globe"></i>}
             </button>
             
