@@ -42,6 +42,7 @@ const TwitterDashboard: React.FC = () => {
   const [scheduleTime, setScheduleTime] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [loadingFeed, setLoadingFeed] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'queue' | 'dms'>('timeline');
   const [selectedDm, setSelectedDm] = useState<any>(null);
   
@@ -62,12 +63,24 @@ const TwitterDashboard: React.FC = () => {
       if(savedApps.includes('twitter')) { loadFeed(); }
   }, []);
 
-  const loadFeed = async () => {
-      setLoadingFeed(true);
+  const loadFeed = async (append = false) => {
+      if (append) setIsLoadingMore(true);
+      else setLoadingFeed(true);
+      
       const posts = await getXFeed('SaaS & Tech Marketing');
-      setFeed(posts);
-      setLoadingFeed(false);
+      
+      if (append) {
+          setFeed(prev => [...prev, ...posts]);
+          setIsLoadingMore(false);
+      } else {
+          setFeed(posts);
+          setLoadingFeed(false);
+      }
   }
+
+  const handleLoadMore = () => {
+      loadFeed(true);
+  };
 
   const handleConnect = () => {
       const width = 600, height = 600;
@@ -290,7 +303,7 @@ const TwitterDashboard: React.FC = () => {
                                 <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-[10px]"></i>
                                 <input type="text" placeholder="FILTER FEED..." className="bg-slate-950 border border-white/5 rounded-xl pl-10 pr-4 py-2.5 text-[9px] font-tech font-black text-white outline-none focus:ring-1 focus:ring-indigo-500" />
                              </div>
-                             <button onClick={loadFeed} className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all"><i className="fa-solid fa-rotate-right text-xs"></i></button>
+                             <button onClick={() => loadFeed()} className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all"><i className="fa-solid fa-rotate-right text-xs"></i></button>
                           </div>
                       </div>
 
@@ -303,7 +316,7 @@ const TwitterDashboard: React.FC = () => {
                         ) : activeTab === 'timeline' ? (
                             <div className="grid gap-8">
                                 {feed.map((post, i) => (
-                                    <div key={i} className="p-8 bg-slate-900/40 border border-white/5 rounded-[2.5rem] hover:bg-slate-900/80 transition-all group relative overflow-hidden">
+                                    <div key={i} className="p-8 bg-slate-900/40 border border-white/5 rounded-[2.5rem] hover:bg-slate-900/80 transition-all group relative overflow-hidden animate-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${i % 5 * 100}ms` }}>
                                         <div className="flex gap-6 items-start relative z-10">
                                             <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/5 flex-shrink-0 flex items-center justify-center text-slate-400 font-bold shadow-inner">
                                                 {post.author ? post.author[0] : 'X'}
@@ -343,6 +356,23 @@ const TwitterDashboard: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
+
+                                {feed.length > 0 && (
+                                    <div className="pt-10 flex justify-center">
+                                        <button 
+                                            onClick={handleLoadMore}
+                                            disabled={isLoadingMore}
+                                            className="w-full py-6 rounded-[2rem] bg-white/5 border border-white/10 text-slate-400 font-black uppercase text-[11px] tracking-[0.4em] hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-4 group disabled:opacity-50"
+                                        >
+                                            {isLoadingMore ? (
+                                                <i className="fa-solid fa-sync fa-spin"></i>
+                                            ) : (
+                                                <i className="fa-solid fa-arrow-down-wide-short group-hover:translate-y-1 transition-transform"></i>
+                                            )}
+                                            {isLoadingMore ? 'Sequencing Previous Nodes...' : 'Load Older Transmission Nodes'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : activeTab === 'queue' ? (
                             <div className="grid gap-4">
