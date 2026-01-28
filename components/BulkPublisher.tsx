@@ -42,6 +42,7 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraf
     const isMeta = post.platformId === 'meta' || post.platformId === 'facebook';
     const isIG = post.platformId === 'instagram';
     const isYT = post.platformId === 'youtube';
+    const isTikTok = post.platformId === 'tiktok';
     const charCount = post.content.length;
     
     const [isSaved, setIsSaved] = useState(false);
@@ -51,6 +52,79 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraf
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 2000);
     };
+
+    if (isTikTok) {
+        return (
+            <div className="relative w-full max-w-[320px] aspect-[9/16] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-[6px] border-slate-900 mx-auto group">
+                {/* Media Layer */}
+                <div className="absolute inset-0 z-0">
+                    {media ? (
+                        <img src={media.url} className="w-full h-full object-cover" alt="TikTok Preview" />
+                    ) : (
+                        <div className="w-full h-full bg-slate-900 flex flex-col items-center justify-center text-slate-700">
+                            <i className="fa-solid fa-video text-5xl mb-4"></i>
+                            <p className="text-[10px] font-black uppercase tracking-widest">9:16 Node Required</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Overlay UI */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-10 p-4 flex flex-col justify-end">
+                    {/* Top Bars */}
+                    <div className="absolute top-6 left-0 right-0 flex justify-center gap-4 text-white text-[11px] font-bold opacity-80">
+                        <span className="border-b-2 border-white pb-1">Following</span>
+                        <span className="opacity-60">For You</span>
+                    </div>
+
+                    {/* Right Side Interactions */}
+                    <div className="absolute right-2 bottom-20 flex flex-col items-center gap-5 text-white">
+                        <div className="relative">
+                            <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-white">
+                                <img src="https://ui-avatars.com/api/?name=SS&background=000&color=fff" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-[#fe2c55] rounded-full flex items-center justify-center text-[10px]">
+                                <i className="fa-solid fa-plus"></i>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <i className="fa-solid fa-heart text-3xl drop-shadow-lg"></i>
+                            <span className="text-[10px] font-bold mt-1">0</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <i className="fa-solid fa-comment-dots text-3xl drop-shadow-lg"></i>
+                            <span className="text-[10px] font-bold mt-1">0</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <i className="fa-solid fa-bookmark text-3xl drop-shadow-lg"></i>
+                            <span className="text-[10px] font-bold mt-1">0</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <i className="fa-solid fa-share text-3xl drop-shadow-lg"></i>
+                            <span className="text-[10px] font-bold mt-1">0</span>
+                        </div>
+                        {/* Rotating Music Disc */}
+                        <div className="w-10 h-10 rounded-full bg-slate-800 border-[6px] border-slate-700 animate-spin-slow">
+                            <img src="https://ui-avatars.com/api/?name=Music&background=111&color=fff" className="w-full h-full rounded-full" />
+                        </div>
+                    </div>
+
+                    {/* Bottom Info */}
+                    <div className="pr-16 space-y-2 mb-2">
+                        <h4 className="text-white font-bold text-sm">@socialstack_official</h4>
+                        <p className="text-white text-xs line-clamp-3 leading-relaxed drop-shadow-md">
+                            {post.content}
+                        </p>
+                        <div className="flex items-center gap-2 text-white text-[11px] font-medium overflow-hidden">
+                            <i className="fa-solid fa-music text-[10px]"></i>
+                            <div className="whitespace-nowrap animate-marquee">
+                                Original Sound - Social Stack Growth Core
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (isYT) {
         return (
@@ -69,9 +143,6 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraf
                         </div>
                     )}
                     <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 rounded text-[10px] font-bold">12:42</div>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        <i className="fa-brands fa-youtube text-red-600 text-7xl drop-shadow-2xl"></i>
-                    </div>
                 </div>
                 <div className="p-4 space-y-3">
                     <div className="flex gap-3">
@@ -85,16 +156,6 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraf
                     </div>
                     <div className="bg-slate-800/40 p-3 rounded-xl">
                         <p className="text-[11px] text-slate-300 whitespace-pre-wrap line-clamp-3 font-medium">{post.content}</p>
-                        <button className="text-[10px] font-black uppercase text-indigo-400 mt-2 hover:text-white transition-colors">Show More</button>
-                    </div>
-                    <div className="flex items-center justify-between pt-2">
-                        <div className="flex gap-4">
-                            <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs font-bold hover:bg-white/10 transition-colors"><i className="fa-regular fa-thumbs-up"></i> 0</button>
-                            <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs font-bold hover:bg-white/10 transition-colors"><i className="fa-solid fa-share-nodes"></i> Share</button>
-                        </div>
-                        <button onClick={handleSave} className={`${isSaved ? 'text-emerald-400' : 'text-slate-500'} transition-all`}>
-                            <i className={isSaved ? "fa-solid fa-check" : "fa-regular fa-bookmark"}></i>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -117,32 +178,22 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraf
                                 <i className="fa-solid fa-circle-check text-[#1d9bf0] text-[12px]"></i>
                                 <span className="text-slate-500 text-[14px] font-normal truncate">@socialstack · 1m</span>
                             </div>
-                            <i className="fa-solid fa-ellipsis text-slate-500 text-xs"></i>
                         </div>
                         <div className="mt-1 text-[15px] whitespace-pre-wrap leading-normal text-slate-100 font-normal tracking-tight">
                             {post.content}
                         </div>
-                        
                         {media && (
                             <div className="mt-3 rounded-2xl overflow-hidden border border-slate-800 aspect-video bg-slate-900">
                                 <img src={media.url} className="w-full h-full object-cover" alt="X Media" />
                             </div>
                         )}
-
                         <div className="mt-4 flex items-center justify-between max-w-[400px] text-slate-500">
-                            <div className="flex items-center gap-1.5 group cursor-pointer hover:text-[#1d9bf0]"><i className="fa-regular fa-comment text-sm"></i> <span className="text-xs">0</span></div>
-                            <div className="flex items-center gap-1.5 group cursor-pointer hover:text-[#00ba7c]"><i className="fa-solid fa-retweet text-sm"></i> <span className="text-xs">0</span></div>
-                            <div className="flex items-center gap-1.5 group cursor-pointer hover:text-[#f91880]"><i className="fa-regular fa-heart text-sm"></i> <span className="text-xs">0</span></div>
-                            <div className="flex items-center gap-3">
-                                <i className="fa-regular fa-bookmark text-sm hover:text-[#1d9bf0] cursor-pointer"></i>
-                                <i className="fa-solid fa-arrow-up-from-bracket text-sm hover:text-[#1d9bf0] cursor-pointer"></i>
-                            </div>
+                            <div className="flex items-center gap-1.5 group cursor-pointer"><i className="fa-regular fa-comment text-sm"></i> <span className="text-xs">0</span></div>
+                            <div className="flex items-center gap-1.5 group cursor-pointer"><i className="fa-solid fa-retweet text-sm"></i> <span className="text-xs">0</span></div>
+                            <div className="flex items-center gap-1.5 group cursor-pointer"><i className="fa-regular fa-heart text-sm"></i> <span className="text-xs">0</span></div>
+                            <i className="fa-regular fa-bookmark text-sm"></i>
                         </div>
                     </div>
-                </div>
-                <div className="absolute top-4 right-4 flex items-center gap-2">
-                    <div className={`w-1 h-4 rounded-full ${isOverLimit ? 'bg-rose-500 animate-pulse' : 'bg-indigo-500 opacity-20'}`}></div>
-                    <span className={`text-[10px] font-tech ${isOverLimit ? 'text-rose-500' : 'text-slate-600'}`}>{charCount}/280</span>
                 </div>
             </div>
         );
@@ -150,41 +201,45 @@ const PlatformPreview: React.FC<{ post: any; media: MediaItem | null; onSaveDraf
 
     if (isMeta) {
         return (
-            <div className="bg-[#242526] text-[#e4e6eb] rounded-xl border border-slate-700 shadow-xl font-sans overflow-hidden">
+            <div className="bg-white text-slate-900 rounded-xl border border-slate-200 shadow-xl font-sans overflow-hidden dark:bg-[#242526] dark:text-[#e4e6eb] dark:border-slate-700">
                 <div className="p-4 flex justify-between items-start">
                     <div className="flex gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center border border-white/10">
+                        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center border border-slate-100 shadow-sm">
                             <i className="fa-solid fa-layer-group text-white text-xs"></i>
                         </div>
                         <div>
                             <p className="font-bold text-[15px] leading-tight hover:underline cursor-pointer">Social Stack Global</p>
-                            <p className="text-[12px] text-[#b0b3b8] flex items-center gap-1 mt-0.5">Just now · <i className="fa-solid fa-earth-americas text-[10px]"></i></p>
+                            <p className="text-[12px] text-slate-500 dark:text-[#b0b3b8] flex items-center gap-1 mt-0.5">Just now · <i className="fa-solid fa-earth-americas text-[10px]"></i></p>
                         </div>
                     </div>
-                    <button onClick={handleSave} className={`${isSaved ? 'text-emerald-400' : 'text-[#b0b3b8]'} hover:bg-white/5 p-2 rounded-full transition-all`}>
-                        <i className={isSaved ? "fa-solid fa-check" : "fa-solid fa-bookmark"}></i>
-                    </button>
                 </div>
                 <div className="px-4 pb-3 text-[15px] leading-snug whitespace-pre-wrap">{post.content}</div>
-                {media && <div className="bg-black flex items-center justify-center border-y border-slate-700 max-h-[400px] overflow-hidden"><img src={media.url} className="w-full h-full object-contain" alt="FB Media" /></div>}
+                {media && <div className="bg-black flex items-center justify-center border-y border-slate-100 dark:border-slate-700 max-h-[400px] overflow-hidden"><img src={media.url} className="w-full h-full object-contain" alt="FB Media" /></div>}
+                <div className="p-3 border-t border-slate-100 dark:border-slate-700 flex justify-between">
+                    <div className="flex gap-4">
+                        <span className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-[#b0b3b8] hover:bg-slate-100 dark:hover:bg-white/5 px-2 py-1 rounded transition-colors"><i className="fa-regular fa-thumbs-up"></i> Like</span>
+                        <span className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-[#b0b3b8] hover:bg-slate-100 dark:hover:bg-white/5 px-2 py-1 rounded transition-colors"><i className="fa-regular fa-comment"></i> Comment</span>
+                    </div>
+                </div>
             </div>
         );
     }
 
     if (isIG) {
         return (
-            <div className="bg-black text-white rounded-xl border border-slate-800 shadow-xl font-sans max-w-[450px] mx-auto overflow-hidden">
+            <div className="bg-white text-black rounded-xl border border-slate-200 shadow-xl font-sans max-w-[450px] mx-auto overflow-hidden dark:bg-black dark:text-white dark:border-slate-800">
                 <div className="p-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full p-[2px] bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]"><div className="w-full h-full rounded-full bg-black p-[1px]"><img src="https://ui-avatars.com/api/?name=SS&background=6366f1&color=fff" className="w-full h-full rounded-full" alt="IG Avatar" /></div></div>
+                        <div className="w-9 h-9 rounded-full p-[2px] bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]"><div className="w-full h-full rounded-full bg-white dark:bg-black p-[1px]"><img src="https://ui-avatars.com/api/?name=SS&background=6366f1&color=fff" className="w-full h-full rounded-full" alt="IG Avatar" /></div></div>
                         <div>
                             <div className="flex items-center gap-1"><p className="font-bold text-[13px] leading-none">socialstack_global</p><i className="fa-solid fa-circle-check text-[#0095f6] text-[10px]"></i></div>
-                            <p className="text-[11px] text-slate-400 mt-0.5">San Francisco, CA</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Sponsored</p>
                         </div>
                     </div>
-                    <button onClick={handleSave} className={`${isSaved ? 'text-emerald-400' : 'text-white'} transition-all`}><i className={isSaved ? "fa-solid fa-check" : "fa-regular fa-bookmark"}></i></button>
                 </div>
-                <div className="aspect-square bg-slate-900 overflow-hidden flex items-center justify-center border-y border-slate-800">{media ? <img src={media.url} className="w-full h-full object-cover" alt="IG Post" /> : <i className="fa-solid fa-image text-6xl opacity-10"></i>}</div>
+                <div className="aspect-square bg-slate-100 dark:bg-slate-900 overflow-hidden flex items-center justify-center border-y border-slate-200 dark:border-slate-800">
+                    {media ? <img src={media.url} className="w-full h-full object-cover" alt="IG Post" /> : <i className="fa-solid fa-image text-6xl opacity-10"></i>}
+                </div>
                 <div className="p-3">
                     <div className="flex justify-between items-center mb-3">
                         <div className="flex gap-4 text-2xl"><i className="fa-regular fa-heart"></i><i className="fa-regular fa-comment"></i><i className="fa-regular fa-paper-plane"></i></div>
@@ -208,7 +263,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'upload' | 'ai' | 'trends' | 'drafts'>('trends');
+  const [mediaTab, setMediaTab] = useState<'upload' | 'trends' | 'drafts'>('trends');
 
   const [trendNiche, setTrendNiche] = useState('');
   const [isScanningTrends, setIsScanningTrends] = useState(false);
@@ -331,7 +386,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
       setSelectedPlatforms([draft.platformId]);
       const matchedMedia = mediaLibrary.find(m => m.url === draft.mediaUrl);
       if (matchedMedia) setSelectedMedia(matchedMedia);
-      setGeneratedContent(null); // Clear previous previews to show new draft state
+      setGeneratedContent(null);
   };
 
   const purgeDraft = (id: string) => {
@@ -405,26 +460,6 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                                             <p className="text-xs font-black text-emerald-400">{s.velocityScore}%</p>
                                         </div>
                                     </div>
-                                    
-                                    <div className="space-y-4 relative z-10">
-                                        <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                                                <i className="fa-solid fa-magnet text-[8px]"></i> Real-time Hook
-                                            </p>
-                                            <p className="text-[10px] text-slate-300 italic leading-relaxed">"{s.viralHookText}"</p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-3">
-                                            <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Algorithm Trigger</p>
-                                                <p className="text-[9px] text-slate-400 font-medium leading-snug">{s.algorithmReasoning}</p>
-                                            </div>
-                                            <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Trending Audio Profile</p>
-                                                <p className="text-[9px] text-indigo-300 font-black italic">{s.trendingAudioProfile}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
                                     <button 
                                         onClick={() => applySuggestion(s)} 
                                         className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-widest transition-all relative z-10 flex items-center justify-center gap-2"
@@ -434,18 +469,10 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                                     </button>
                                 </div>
                             ))}
-                            
-                            {viralSuggestions.length === 0 && !isScanningTrends && (
-                                <div className="py-20 text-center space-y-4 opacity-20">
-                                    <i className="fa-solid fa-radar text-5xl"></i>
-                                    <p className="text-[10px] font-tech uppercase tracking-[0.4em]">Sector Scanned: 0 Signals</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 ) : mediaTab === 'upload' ? (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-300 relative z-10">
-                        {/* Media Grid Refining Hub */}
                         <div className="space-y-4 p-2">
                              <div className="flex gap-2">
                                 <div className="relative flex-1">
@@ -458,18 +485,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                                         className="w-full bg-slate-950 border border-white/5 rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold text-white shadow-inner focus:border-indigo-500/50 outline-none"
                                     />
                                 </div>
-                                <select 
-                                    value={mediaSortOption} 
-                                    onChange={e => setMediaSortOption(e.target.value as any)}
-                                    className="bg-slate-950 border border-white/5 rounded-xl px-2 py-2 text-[10px] font-black text-slate-500 uppercase outline-none"
-                                >
-                                    <option value="date-desc">Newest</option>
-                                    <option value="date-asc">Oldest</option>
-                                    <option value="size-desc">Largest</option>
-                                    <option value="size-asc">Smallest</option>
-                                </select>
                              </div>
-                             
                              <div className="flex gap-2 bg-slate-950/60 p-1 rounded-xl border border-white/5">
                                 {['all', 'image', 'video'].map(type => (
                                     <button 
@@ -487,62 +503,45 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                             {filteredAndSortedMedia.length > 0 ? filteredAndSortedMedia.map(item => (
                                 <div key={item.id} onClick={() => setSelectedMedia(selectedMedia?.id === item.id ? null : item)} className={`aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition-all relative group shadow-lg ${selectedMedia?.id === item.id ? 'border-indigo-500 scale-95 shadow-indigo-500/20 ring-4 ring-indigo-500/20' : 'border-slate-800 hover:border-slate-600'}`}>
                                     {item.type === 'video' ? <div className="w-full h-full bg-black flex items-center justify-center text-indigo-500"><i className="fa-solid fa-video text-xl"></i></div> : <img src={item.url} className="w-full h-full object-cover" loading="lazy" />}
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center flex-col gap-1 p-2">
-                                        <span className="text-[7px] font-black uppercase text-white bg-indigo-600 px-1.5 py-0.5 rounded shadow-lg">{item.type}</span>
-                                        <span className="text-[6px] text-slate-300 font-tech truncate w-full text-center">{item.size || 'N/A'}</span>
-                                    </div>
-                                    <div className="absolute bottom-1 right-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                        <i className="fa-solid fa-calendar-day text-[6px] text-white"></i>
-                                    </div>
                                 </div>
-                            )) : (
-                                <div className="col-span-full py-20 text-center opacity-30">
-                                    <i className="fa-solid fa-filter-circle-xmark text-4xl mb-4"></i>
-                                    <p className="text-[10px] font-tech uppercase tracking-[0.2em]">Refinement Yielded 0 Results</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ) : mediaTab === 'drafts' ? (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 relative z-10">
-                        <div className="space-y-4 max-h-[580px] overflow-y-auto no-scrollbar pr-1 scroll-smooth">
-                            {drafts.length > 0 ? drafts.map((draft) => {
-                                const platform = PLATFORMS.find(p => p.id === draft.platformId);
-                                return (
-                                    <div key={draft.id} className="p-5 bg-slate-950/80 border border-white/5 rounded-3xl space-y-4 hover:border-indigo-500/30 transition-all group/draft shadow-inner relative overflow-hidden">
-                                        <div className="flex justify-between items-start relative z-10">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 group-hover/draft:bg-indigo-600 group-hover/draft:text-white transition-all">
-                                                    <i className={platform?.icon || 'fa-solid fa-file'}></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-white uppercase tracking-tight truncate max-w-[120px]">{draft.title || 'Untitled Draft'}</p>
-                                                    <p className="text-[7px] text-slate-600 font-tech uppercase tracking-widest">{draft.timestamp}</p>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => purgeDraft(draft.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-700 hover:text-rose-500 transition-colors">
-                                                <i className="fa-solid fa-trash-can text-xs"></i>
-                                            </button>
-                                        </div>
-                                        <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed italic">"{draft.content}"</p>
-                                        <button 
-                                            onClick={() => loadDraft(draft)} 
-                                            className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-[0.2em] transition-all"
-                                        >
-                                            Load into Hub
-                                        </button>
-                                    </div>
-                                );
-                            }) : (
-                                <div className="py-32 text-center space-y-6 opacity-20">
-                                    <i className="fa-solid fa-inbox text-5xl"></i>
-                                    <p className="text-[10px] font-tech uppercase tracking-[0.4em]">Vault Empty: 0 Draft Nodes</p>
-                                </div>
-                            )}
+                            )) : null}
                         </div>
                     </div>
                 ) : (
-                    <div className="py-20 text-center opacity-30 animate-pulse"><i className="fa-solid fa-terminal text-6xl mb-6"></i><p className="text-[11px] font-tech uppercase tracking-[0.4em]">Sector Idle</p></div>
+                    <div className="space-y-4 max-h-[580px] overflow-y-auto no-scrollbar pr-1 scroll-smooth">
+                        {drafts.length > 0 ? drafts.map((draft) => {
+                            const platform = PLATFORMS.find(p => p.id === draft.platformId);
+                            return (
+                                <div key={draft.id} className="p-5 bg-slate-950/80 border border-white/5 rounded-3xl space-y-4 hover:border-indigo-500/30 transition-all group/draft shadow-inner relative overflow-hidden">
+                                    <div className="flex justify-between items-start relative z-10">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 group-hover/draft:bg-indigo-600 group-hover/draft:text-white transition-all">
+                                                <i className={platform?.icon || 'fa-solid fa-file'}></i>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-white uppercase tracking-tight truncate max-w-[120px]">{draft.title || 'Untitled Draft'}</p>
+                                                <p className="text-[7px] text-slate-600 font-tech uppercase tracking-widest">{draft.timestamp}</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => purgeDraft(draft.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-700 hover:text-rose-500 transition-colors">
+                                            <i className="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </div>
+                                    <button 
+                                        onClick={() => loadDraft(draft)} 
+                                        className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-[0.2em] transition-all"
+                                    >
+                                        Load into Hub
+                                    </button>
+                                </div>
+                            );
+                        }) : (
+                            <div className="py-32 text-center space-y-6 opacity-20">
+                                <i className="fa-solid fa-inbox text-5xl"></i>
+                                <p className="text-[10px] font-tech uppercase tracking-[0.4em]">Vault Empty: 0 Draft Nodes</p>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
         </div>
@@ -556,7 +555,7 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                             <textarea 
                                 value={prompt} 
                                 onChange={e => setPrompt(e.target.value)} 
-                                placeholder="Initialize broadcast sequence payload or apply a strategy node from the lab..."
+                                placeholder="Initialize broadcast sequence payload..."
                                 className="w-full bg-slate-950/80 border border-white/10 rounded-[2.5rem] p-8 text-base text-white h-48 focus:ring-1 focus:ring-indigo-500 shadow-inner resize-none font-medium placeholder-slate-800 transition-all"
                             />
                         </div>
@@ -597,21 +596,23 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
                     <div className="flex items-center justify-between px-4 border-l-4 border-indigo-600 py-2">
                         <div><h3 className="text-2xl font-display font-black text-white uppercase tracking-tighter">Transmission Previews</h3><p className="text-[10px] text-slate-500 font-tech uppercase tracking-widest mt-1">Multi-Channel Fidelity Audit</p></div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16 items-start">
                         {generatedContent.platformPosts?.map((post: any, i: number) => {
                             const result = syncResults.find(r => r.platformId === post.platformId);
                             return (
                                 <div key={i} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${i * 150}ms` }}>
-                                    <PlatformPreview post={post} media={selectedMedia} onSaveDraft={handleSaveDraft} youtubeTitle={youtubeTitle} />
-                                    {result && (
-                                        <div className={`p-5 rounded-2xl border-2 flex items-center justify-between shadow-xl ${result.status === 'success' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'}`}>
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${result.status === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`}><i className={`fa-solid ${result.status === 'success' ? 'fa-check' : 'fa-triangle-exclamation'}`}></i></div>
-                                                <div>
-                                                    <p className={`text-[10px] font-black uppercase tracking-widest ${result.status === 'success' ? 'text-emerald-400' : 'text-rose-400'}`}>{result.status === 'success' ? 'Node Synchronized' : 'Sync Error'}</p>
-                                                    {result.error && <p className="text-[11px] text-slate-300 font-medium italic mt-1 leading-snug">"{result.error}"</p>}
-                                                </div>
+                                    <div className="relative">
+                                        <PlatformPreview post={post} media={selectedMedia} onSaveDraft={handleSaveDraft} youtubeTitle={youtubeTitle} />
+                                        {result && (
+                                            <div className={`absolute -top-4 -right-4 z-20 px-4 py-2 rounded-xl border-2 flex items-center gap-3 shadow-2xl animate-in zoom-in-50 duration-300 ${result.status === 'success' ? 'bg-emerald-500 border-emerald-400 text-white' : result.status === 'pending' ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-rose-500 border-rose-400 text-white'}`}>
+                                                <i className={`fa-solid ${result.status === 'success' ? 'fa-check' : result.status === 'pending' ? 'fa-satellite fa-spin' : 'fa-triangle-exclamation'}`}></i>
+                                                <span className="text-[9px] font-black uppercase tracking-widest">{result.status}</span>
                                             </div>
+                                        )}
+                                    </div>
+                                    {result?.error && (
+                                        <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-[10px] text-rose-400 font-medium text-center">
+                                            {result.error}
                                         </div>
                                     )}
                                 </div>
@@ -623,6 +624,18 @@ const BulkPublisher: React.FC<BulkPublisherProps> = ({ mediaLibrary, onUpdateLib
             )}
         </div>
       </div>
+      <style>{`
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            animation: marquee 10s linear infinite;
+        }
+        .animate-spin-slow {
+            animation: spin 5s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };
