@@ -152,7 +152,7 @@ const SMMPanel: React.FC<{ onBuy: (item: any) => void; currency?: string }> = ({
                     </div>
                 </div>
                 <div className="space-y-4">
-                    {['PeakSMM', 'ViralNodes', 'MetaPro'].map(node => (
+                    {['StackCore', 'ViralNetwork', 'MetaHub'].map(node => (
                         <div key={node} className="flex items-center justify-between p-3.5 bg-black/40 rounded-xl border border-white/5">
                             <span className="text-[9px] text-slate-500 font-tech font-bold uppercase">{node} Kernel</span>
                             <i className="fa-solid fa-signal text-emerald-500 text-[8px]"></i>

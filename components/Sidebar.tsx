@@ -18,15 +18,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
   const t = TRANSLATIONS[user.language || 'en-US'] || TRANSLATIONS['en-US'];
 
   const coreMenuItems = [
-    { id: AppRoute.DASHBOARD, label: t[AppRoute.DASHBOARD], icon: 'fa-solid fa-house', color: 'text-blue-400' },
-    { id: AppRoute.NEWS, label: t[AppRoute.NEWS], icon: 'fa-solid fa-rss', color: 'text-rose-400' },
-    { id: AppRoute.ANALYTICS, label: t[AppRoute.ANALYTICS], icon: 'fa-solid fa-chart-line', color: 'text-emerald-400' },
-    { id: AppRoute.PUBLISHER, label: t[AppRoute.PUBLISHER], icon: 'fa-solid fa-paper-plane', color: 'text-indigo-400' },
-    { id: AppRoute.INTEGRATIONS, label: t[AppRoute.INTEGRATIONS], icon: 'fa-solid fa-link', color: 'text-amber-400' },
+    { id: AppRoute.DASHBOARD, label: t[AppRoute.DASHBOARD], icon: 'fa-solid fa-shapes', color: 'text-blue-400' },
+    { id: AppRoute.NEWS, label: t[AppRoute.NEWS], icon: 'fa-solid fa-satellite-dish', color: 'text-rose-400' },
+    { id: AppRoute.ANALYTICS, label: t[AppRoute.ANALYTICS], icon: 'fa-solid fa-chart-pie', color: 'text-emerald-400' },
+    { id: AppRoute.PUBLISHER, label: t[AppRoute.PUBLISHER], icon: 'fa-solid fa-tower-broadcast', color: 'text-indigo-400' },
+    { id: AppRoute.INTEGRATIONS, label: t[AppRoute.INTEGRATIONS], icon: 'fa-solid fa-plug', color: 'text-amber-400' },
   ];
 
   const marketMenuItems = [
-    { id: AppRoute.SMM_PANEL, label: t[AppRoute.SMM_PANEL], icon: 'fa-solid fa-cart-shopping', color: 'text-violet-400' },
+    { id: AppRoute.SMM_PANEL, label: t[AppRoute.SMM_PANEL], icon: 'fa-solid fa-network-wired', color: 'text-violet-400' },
     { id: AppRoute.RDP_SERVICES, label: t[AppRoute.RDP_SERVICES], icon: 'fa-solid fa-server', color: 'text-orange-400' },
     { id: AppRoute.OTP_SERVICES, label: t[AppRoute.OTP_SERVICES], icon: 'fa-solid fa-shield-halved', color: 'text-cyan-400' },
   ];
@@ -37,8 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
   ];
 
   const adminMenuItems = [
-    { id: AppRoute.ADMIN_CONTROL, label: t[AppRoute.ADMIN_CONTROL], icon: 'fa-solid fa-fingerprint', color: 'text-rose-500' },
-    { id: AppRoute.DEPLOYMENT, label: t[AppRoute.DEPLOYMENT], icon: 'fa-solid fa-rocket', color: 'text-indigo-500' },
+    { id: AppRoute.ADMIN_CONTROL, label: 'Root Control', icon: 'fa-solid fa-fingerprint', color: 'text-rose-500' },
   ];
 
   const getButtonStyle = (active: boolean) => {
@@ -80,7 +79,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentRoute, setRoute, onLogout, use
           <button key={item.id} onClick={() => setRoute(item.id)} className={getButtonStyle(currentRoute === item.id)}>
             <i className={`${item.icon} text-xl ${currentRoute === item.id ? 'text-white' : item.color}`}></i>
             {!isCollapsed && <span className="font-black">{item.label}</span>}
-            {currentRoute === item.id && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-l-full shadow-[0_0_10px_#6366f1]"></div>}
           </button>
         ))}
 

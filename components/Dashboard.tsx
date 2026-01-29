@@ -14,9 +14,18 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [xFeed, setXFeed] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
+  const [lastSync, setLastSync] = useState<string>('');
 
   const currData = GLOBAL_CURRENCIES[currency] || GLOBAL_CURRENCIES['USD'];
   const formatPrice = (amount: number) => `${currData.symbol}${(amount * currData.rate).toLocaleString()}`;
+
+  const fetchFeed = async () => {
+    setLoadingFeed(true);
+    const feed = await getXFeed('Digital Marketing Trends');
+    setXFeed(feed || []);
+    setLoadingFeed(false);
+    setLastSync(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+  };
 
   useEffect(() => {
     const newData = Array.from({ length: 14 }, (_, i) => ({
@@ -25,12 +34,6 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
         spend: Math.floor(Math.random() * 1500) + 800,
     }));
     setChartData(newData);
-    
-    const fetchFeed = async () => {
-        const feed = await getXFeed('Digital Marketing Trends');
-        setXFeed(feed);
-        setLoadingFeed(false);
-    };
     fetchFeed();
   }, []);
 
@@ -152,16 +155,26 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
 
         <div className="lg:col-span-4 space-y-6">
             <TaskManager />
-            <div className="glass-panel rounded-[2.5rem] border-slate-700/50 flex flex-col h-80 overflow-hidden">
-                <div className="p-6 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
-                    <h3 className="text-xs font-tech font-black text-white uppercase tracking-widest">Intel Feed</h3>
-                    <i className="fa-brands fa-x-twitter text-slate-600"></i>
+            <div className="glass-panel rounded-[2.5rem] border-slate-700/50 flex flex-col h-80 overflow-hidden relative">
+                <div className="p-6 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center relative z-10">
+                    <div>
+                        <h3 className="text-xs font-tech font-black text-white uppercase tracking-widest">Intel Feed</h3>
+                        <p className="text-[7px] text-slate-500 uppercase tracking-[0.2em] mt-1">Sync: {lastSync || 'Initializing'}</p>
+                    </div>
+                    <button onClick={fetchFeed} className="text-slate-600 hover:text-indigo-400 transition-colors">
+                        <i className="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
                 </div>
-                <div className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar">
+                <div className="flex-1 p-6 space-y-6 overflow-y-auto no-scrollbar relative z-10">
                     {loadingFeed ? (
                         <div className="flex flex-col items-center justify-center py-20 text-slate-600 space-y-4">
                             <i className="fa-solid fa-satellite fa-spin text-2xl"></i>
                             <p className="text-[10px] font-tech font-black uppercase tracking-widest">Scanning...</p>
+                        </div>
+                    ) : xFeed.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-700 space-y-2 opacity-50">
+                            <i className="fa-solid fa-inbox text-2xl"></i>
+                            <p className="text-[9px] font-tech font-black uppercase tracking-widest">No Signals Detected</p>
                         </div>
                     ) : (
                         xFeed.map((post, i) => (
@@ -177,8 +190,8 @@ const Dashboard: React.FC<{ currency?: string }> = ({ currency = 'USD' }) => {
                                 </div>
                                 <p className="text-xs text-slate-400 leading-relaxed font-medium italic">"{post.content}"</p>
                                 <div className="flex gap-4 text-[9px] font-tech text-slate-600 uppercase">
-                                    <span className="flex items-center gap-1"><i className="fa-solid fa-heart text-rose-500/50"></i> {post.metrics.likes}</span>
-                                    <span className="flex items-center gap-1"><i className="fa-solid fa-eye text-indigo-500/50"></i> {post.metrics.views}</span>
+                                    <span className="flex items-center gap-1"><i className="fa-solid fa-heart text-rose-500/50"></i> {post.metrics?.likes || '0'}</span>
+                                    <span className="flex items-center gap-1"><i className="fa-solid fa-eye text-indigo-500/50"></i> {post.metrics?.views || '0'}</span>
                                 </div>
                                 {i < xFeed.length - 1 && <div className="h-px bg-slate-800/50 w-full mt-4"></div>}
                             </div>

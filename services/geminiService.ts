@@ -6,17 +6,49 @@ import { GoogleGenAI, Type, Modality } from "@google/genai";
  */
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// In-memory cache to prevent RESOURCE_EXHAUSTED (Rate Limiting)
+const apiCache: Record<string, { data: any, timestamp: number }> = {};
+const activeRequests: Record<string, Promise<any>> = {};
+const CACHE_TTL = 10 * 60 * 1000; // Increased to 10 minute TTL for stable intelligence
+
 /**
  * Handles common model response quirks and sanitizes JSON strings.
+ * Enhanced with recursive bracket balancing to extract valid JSON from messy text.
  */
 const safeParseJSON = (text: string | undefined, fallback: any = []) => {
     if (!text) return fallback;
+    
     let cleaned = text.trim();
+    
+    // Attempt 1: Standard cleaning
     cleaned = cleaned.replace(/^```json\s*|```\s*$/g, '');
     try {
         return JSON.parse(cleaned);
     } catch (e) {
-        console.error("JSON Parse Error:", e, "Raw Content:", text);
+        // Attempt 2: Advanced Regex extraction
+        const jsonMatch = text.match(/[\{\[].*[\}\]]/s);
+        if (jsonMatch) {
+            try {
+                return JSON.parse(jsonMatch[0]);
+            } catch (innerE) {
+                // Attempt 3: Bracket Balancing (for truncated or extra-noisy responses)
+                let firstBracket = text.indexOf('{');
+                let firstSquare = text.indexOf('[');
+                let start = (firstBracket !== -1 && (firstBracket < firstSquare || firstSquare === -1)) ? firstBracket : firstSquare;
+                
+                if (start !== -1) {
+                    let last = text.lastIndexOf(text[start] === '{' ? '}' : ']');
+                    if (last !== -1) {
+                        try {
+                            return JSON.parse(text.substring(start, last + 1));
+                        } catch (finalE) {
+                            console.error("Deep extraction failed:", finalE);
+                        }
+                    }
+                }
+            }
+        }
+        console.error("JSON Parse Failure in Node Transmission:", text);
         return fallback;
     }
 };
@@ -66,46 +98,54 @@ async function decodeAudioData(
   return buffer;
 }
 
-export const generateViralSuggestions = async (niche: string, tone: string, platforms: string[] = []) => {
-  try {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Search Google Trends and live social media metrics to identify 4 ultra-current viral marketing patterns for the "${niche}" niche as of early 2026. 
-      Identify:
-      - For Short-Form (TikTok/Reels): Specific visual hooks (e.g., transition styles), audio profiles (e.g., specific synth types or ASMR triggers), and "retention traps".
-      - For Text-Heavy (X/LinkedIn): Content structures (e.g., "The Contrast Pivot", "The Zero-Budget Scaling Thread") and trending industry debate topics.
-      
-      User's target tone: ${tone}. 
-      Selected Channels: ${platforms.join(', ')}.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              type: { type: Type.STRING, description: "Pattern category (e.g., Visual Hook, Audio Wave, Debate Trigger)" },
-              topic: { type: Type.STRING },
-              description: { type: Type.STRING },
-              viralHookText: { type: Type.STRING, description: "The specific opening phrase or visual action to hook viewers" },
-              trendingAudioProfile: { type: Type.STRING, description: "Specific trending sound type or auditory mood" },
-              algorithmReasoning: { type: Type.STRING, description: "Why this works (the algorithm trigger)" },
-              suggestedAngle: { type: Type.STRING },
-              velocityScore: { type: Type.NUMBER, description: "Score from 1-100 indicating search and share velocity" },
-              platforms: { type: Type.ARRAY, items: { type: Type.STRING } }
-            },
-            required: ["type", "topic", "description", "viralHookText", "trendingAudioProfile", "algorithmReasoning", "suggestedAngle", "velocityScore", "platforms"]
-          }
-        }
-      }
+/**
+ * Generic wrapper to handle deduping and caching
+ */
+const performIntelligenceCall = async (key: string, fn: () => Promise<any>) => {
+    // 1. Check Cache
+    if (apiCache[key] && Date.now() - apiCache[key].timestamp < CACHE_TTL) {
+        return apiCache[key].data;
+    }
+
+    // 2. Check for active inflight request (Deduping)
+    if (activeRequests[key]) {
+        return activeRequests[key];
+    }
+
+    // 3. Perform actual call
+    const requestPromise = fn().then(data => {
+        apiCache[key] = { data, timestamp: Date.now() };
+        delete activeRequests[key];
+        return data;
+    }).catch(err => {
+        delete activeRequests[key];
+        throw err;
     });
-    return safeParseJSON(response.text);
-  } catch (error) {
-    console.error("Viral Search Error:", error);
-    return [];
-  }
+
+    activeRequests[key] = requestPromise;
+    return requestPromise;
+};
+
+export const generateViralSuggestions = async (niche: string, tone: string, platforms: string[] = []) => {
+  const cacheKey = `viral_${niche}_${tone}`;
+  return performIntelligenceCall(cacheKey, async () => {
+    try {
+        const ai = getAI();
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: `Search Google Trends and identify 4 viral marketing patterns for "${niche}" for 2026. 
+          Tone: ${tone}. Channels: ${platforms.join(', ')}. Return JSON ARRAY only.`,
+          config: {
+            tools: [{ googleSearch: {} }],
+            responseMimeType: "application/json"
+          }
+        });
+        return safeParseJSON(response.text);
+      } catch (error) {
+        console.error("Viral Search Error:", error);
+        return [];
+      }
+  });
 };
 
 export const generateSocialPost = async (prompt: string, tone: string, keywords: string, platforms: string[]) => {
@@ -113,30 +153,9 @@ export const generateSocialPost = async (prompt: string, tone: string, keywords:
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: `Synthesize a high-engagement broadcast payload for: "${prompt}". 
-            Target Vocal Signature: ${tone}. 
-            Metadata Keywords: ${keywords}. 
-            Output specifically for: ${platforms.join(', ')}. 
-            Ensure channel-specific formatting (e.g. LinkedIn likes white space, X likes brevity).`,
+            contents: `Synthesize broadcast payload for: "${prompt}". Signature: ${tone}. Keywords: ${keywords}. Channels: ${platforms.join(', ')}. Return JSON OBJECT.`,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        generalContent: { type: Type.STRING },
-                        youtubeTitle: { type: Type.STRING },
-                        platformPosts: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    platformId: { type: Type.STRING },
-                                    content: { type: Type.STRING }
-                                }
-                            }
-                        }
-                    }
-                }
+                responseMimeType: "application/json"
             }
         });
         return safeParseJSON(response.text, { generalContent: '', platformPosts: [] });
@@ -150,7 +169,7 @@ export const generateAIImage = async (prompt: string, options: { aspectRatio?: s
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
-            contents: { parts: [{ text: `${options.style ? options.style + ': ' : ''}${prompt}${options.negativePrompt ? '. CRITICAL: No ' + options.negativePrompt : ''}` }] },
+            contents: { parts: [{ text: `${options.style ? options.style + ': ' : ''}${prompt}${options.negativePrompt ? '. No ' + options.negativePrompt : ''}` }] },
             config: {
                 imageConfig: { aspectRatio: (options.aspectRatio || "1:1") as any }
             }
@@ -170,18 +189,14 @@ export const executeStrategicCommand = async (commandInput: string, contextData:
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `Command Hub Input: "${commandInput}". Analytics Context: ${JSON.stringify(contextData)}. Provide a tactical verdict.`,
+      contents: `Command Input: "${commandInput}". Context: ${JSON.stringify(contextData)}. Return tactical action in JSON.`,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-            type: Type.OBJECT,
-            properties: { suggestedAction: { type: Type.STRING } }
-        }
+        responseMimeType: "application/json"
       }
     });
     return { 
-        results: safeParseJSON(response.text, { suggestedAction: "Strategic Node busy." }), 
+        results: safeParseJSON(response.text, { suggestedAction: "Strategic Node processing delay." }), 
         sources: extractSources(response) 
     };
   } catch (error) { return { results: null, sources: [] }; }
@@ -192,23 +207,11 @@ export const getMarketingInsights = async (data: any, useSearch: boolean, useThi
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: useThinking ? "gemini-3-pro-preview" : "gemini-3-flash-preview",
-            contents: `Conduct deep reasoning on marketing stack: ${JSON.stringify(data)}. Provide 3 insights.`,
+            contents: `Conduct deep reasoning on marketing stack: ${JSON.stringify(data)}. Return 3 insights in JSON.`,
             config: {
                 tools: useSearch ? [{ googleSearch: {} }] : undefined,
                 thinkingConfig: useThinking ? { thinkingBudget: 2048 } : undefined,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            category: { type: Type.STRING },
-                            title: { type: Type.STRING },
-                            insight: { type: Type.STRING },
-                            action: { type: Type.STRING }
-                        }
-                    }
-                }
+                responseMimeType: "application/json"
             }
         });
         return { results: safeParseJSON(response.text), sources: extractSources(response) };
@@ -246,29 +249,29 @@ export const generateSpeech = async (text: string) => {
 };
 
 export const getXFeed = async (topic: string) => {
-    try {
-        const response = await getAI().models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: `Identify 5 recent high-impact social posts or news items about "${topic}" via Google Search. Simulate an X feed.`,
-            config: {
-                tools: [{ googleSearch: {} }],
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            author: { type: Type.STRING },
-                            content: { type: Type.STRING },
-                            time: { type: Type.STRING },
-                            metrics: { type: Type.OBJECT, properties: { likes: { type: Type.STRING }, views: { type: Type.STRING } } }
-                        }
-                    }
+    const cacheKey = `xfeed_${topic}`;
+    return performIntelligenceCall(cacheKey, async () => {
+        try {
+            const response = await getAI().models.generateContent({
+                model: "gemini-3-flash-preview",
+                contents: `Identify 5 recent professional social posts about "${topic}" via Google Search. Return JSON ARRAY only.`,
+                config: {
+                    tools: [{ googleSearch: {} }],
+                    responseMimeType: "application/json"
                 }
+            });
+            return safeParseJSON(response.text);
+        } catch (e: any) {
+            if (e?.message?.includes("RESOURCE_EXHAUSTED") || e?.status === 429) {
+                console.warn("Gemini Rate Limit Triggered. Deploying Resilience Mock Data.");
+                return [
+                    { author: "Social Stack Monitor", content: "Intelligence node is cooling down after high throughput. Synchronized feed will resume in 5 minutes.", time: "Cooling Down", metrics: { likes: "N/A", views: "N/A" } },
+                    { author: "Protocol Core", content: "Optimizing API frequency nodes to maintain terminal stability. System status: Nominal.", time: "Internal", metrics: { likes: "100%", views: "Active" } }
+                ];
             }
-        });
-        return safeParseJSON(response.text);
-    } catch (e) { return []; }
+            return [];
+        }
+    });
 };
 
 export const generateTwitterThread = async (topic: string, tone: string) => {
@@ -276,13 +279,9 @@ export const generateTwitterThread = async (topic: string, tone: string) => {
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Synthesize a high-engagement Twitter thread about: "${topic}". Tone: ${tone}. Each node must be < 280 characters.`,
+      contents: `Synthesize a professional thread about: "${topic}". Tone: ${tone}. Return JSON ARRAY of strings.`,
       config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING }
-        }
+        responseMimeType: "application/json"
       }
     });
     return safeParseJSON(response.text, []);
@@ -293,16 +292,9 @@ export const getLinkedInFeed = async () => {
     try {
         const response = await getAI().models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: "5 Professional B2B LinkedIn posts for professional services.",
+            contents: "5 Professional B2B LinkedIn posts for professional services. Return JSON.",
             config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: { author: { type: Type.STRING }, role: { type: Type.STRING }, content: { type: Type.STRING }, time: { type: Type.STRING }, metrics: { type: Type.STRING } }
-                    }
-                }
+                responseMimeType: "application/json"
             }
         });
         return safeParseJSON(response.text);
@@ -313,34 +305,10 @@ export const getYoutubeAnalytics = async () => {
   try {
     const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Analyze recent performance data for the Social Stack YouTube channel using simulated metrics for 2026. Include revenue, view growth, and top-performing video nodes.",
+      contents: "Analyze recent performance for Social Stack YouTube channel using simulated metrics for 2026. Include revenue and top videos in JSON.",
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            revenue: { type: Type.NUMBER },
-            subscribers: { type: Type.NUMBER },
-            totalViews: { type: Type.NUMBER },
-            engagementRate: { type: Type.NUMBER },
-            recentVideos: {
-              type: Type.ARRAY,
-              items: { 
-                type: Type.OBJECT, 
-                properties: { 
-                    id: { type: Type.STRING }, 
-                    title: { type: Type.STRING }, 
-                    views: { type: Type.STRING }, 
-                    likes: { type: Type.STRING }, 
-                    thumbnail: { type: Type.STRING },
-                    watchTime: { type: Type.STRING },
-                    retention: { type: Type.NUMBER }
-                } 
-              }
-            }
-          }
-        }
+        responseMimeType: "application/json"
       }
     });
     return safeParseJSON(response.text, { revenue: 0, recentVideos: [] });
@@ -348,7 +316,7 @@ export const getYoutubeAnalytics = async () => {
 };
 
 export const uploadToYoutube = async (title: string, description: string, videoUrl: string) => {
-    console.log(`[YouTube API] Initializing Upload for: ${title}`);
+    console.log(`[YouTube API] Uploading: ${title}`);
     await new Promise(resolve => setTimeout(resolve, 3000));
     return {
         id: Math.random().toString(36).substr(2, 11),
@@ -361,14 +329,10 @@ export const getDailyNews = async (location: string, language: string) => {
   try {
     const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Top business and tech news for ${location} in ${language}.`,
+      contents: `Top tech news for ${location} in ${language}. Return JSON.`,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: { type: Type.OBJECT, properties: { source: { type: Type.STRING }, headline: { type: Type.STRING }, summary: { type: Type.STRING }, time: { type: Type.STRING } } }
-        }
+        responseMimeType: "application/json"
       }
     });
     return safeParseJSON(response.text);
